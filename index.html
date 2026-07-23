@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>tippos — US strategy</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@10..48,75..100,600..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    :root { font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; color: #0B0B0F; background: #FFF0F7; }
+    body { margin: 0; background: radial-gradient(circle at 10% 0%, #f1eaff 0, transparent 31rem), linear-gradient(145deg, #FFF0F7, #fff 52%, #f7f2ff); } .wrap { max-width: 880px; margin: 0 auto; padding: 38px 20px 80px; }
+    .brand { display: inline-flex; align-items: center; gap: 9px; color: #0B0B0F; font: 800 29px/1 'Bricolage Grotesque', ui-sans-serif, sans-serif; letter-spacing: -.065em; text-decoration: none; } .brand-mark { width: 29px; height: 29px; filter: drop-shadow(0 5px 10px #FF3D9A33); }
+    .eyebrow { color: #7C3AED; font-weight: 800; letter-spacing: .09em; font-size: 12px; text-transform: uppercase; margin-top: 48px; }
+    h1 { font-size: clamp(32px, 6vw, 56px); letter-spacing: -.055em; line-height: .98; margin: 12px 0 16px; max-width: 680px; }
+    p { line-height: 1.6; color: #4a4651; } .card { background: #fff; border: 1px solid #f0d8e5; border-radius: 22px; padding: 22px; box-shadow: 0 12px 35px -18px #7C3AED36, 0 3px 10px #FF3D9A0d; margin-top: 24px; }
+    label { display: block; font-weight: 700; margin-bottom: 8px; } input, textarea { box-sizing: border-box; width: 100%; border: 1px solid #ebd4e1; border-radius: 12px; padding: 13px 14px; font: inherit; color: #0B0B0F; } input:focus, textarea:focus { outline: 3px solid #f7d5e8; border-color: #FF3D9A; }
+    textarea { min-height: 132px; resize: vertical; } button { border: 0; border-radius: 12px; background: #FF3D9A; color: #fff; font: inherit; font-weight: 750; padding: 12px 16px; cursor: pointer; margin-top: 12px; box-shadow: 0 7px 16px #FF3D9A38; }
+    button:disabled { opacity: .55; cursor: wait; } .hint, .limit { font-size: 13px; margin-top: 8px; } .examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .example { background: #FFF0F7; color: #7C3AED; box-shadow: none; margin: 0; font-size: 13px; } .hidden { display: none; } #answer { white-space: pre-wrap; line-height: 1.62; color: #0B0B0F; }
+    .error { color: #c51f5d; } .sources { margin-top: 24px; border-top: 1px solid #f1deea; padding-top: 18px; } .source { margin: 10px 0; font-size: 14px; } .source a { color: #7C3AED; }
+    #answer h2 { font: 700 21px/1.15 'Bricolage Grotesque', ui-sans-serif, sans-serif; letter-spacing: -.025em; margin: 28px 0 10px; color: #7C3AED; } #answer h2:first-child { margin-top: 0; }
+    #answer h3 { font: 700 16px/1.2 'Bricolage Grotesque', ui-sans-serif, sans-serif; margin: 20px 0 8px; } #answer p { color: #0B0B0F; margin: 0 0 15px; } #answer ul, #answer ol { padding-left: 24px; margin: 0 0 18px; }
+    #answer li { margin: 9px 0; line-height: 1.58; } #answer strong { color: #0B0B0F; } .citation { display: inline-block; font-size: 12px; font-weight: 700; color: #8a1c5a; background: #FFF0F7; border-radius: 5px; padding: 1px 5px; margin: 1px 2px; }
+    .history-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; } .history-head h2 { margin: 0; font-size: 22px; } .history-head button { margin: 0; background: #7C3AED; }
+    .history-list { display: grid; gap: 10px; margin-top: 16px; } .history-item { width: 100%; margin: 0; padding: 14px; text-align: left; color: #0B0B0F; background: #fff7fb; border: 1px solid #f0d8e5; box-shadow: none; }
+    .history-item strong, .history-item span { display: block; } .history-item span { margin-top: 5px; color: #706876; font-size: 12px; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="brand" href="#top" aria-label="tippos"><svg class="brand-mark" viewBox="899 109 140 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M966.893 141.179C983.326 112.291 1021.37 117.868 1028.73 149.635C1037.54 188.727 1004.32 222.979 973.703 245.114C964.034 252.232 956.149 248.841 959.553 236.739C963.797 222.221 961.549 214.88 950.592 205.754C919.279 180.027 899.718 163.442 903.348 139.18C906.994 114.107 938.879 109.026 956.011 128C961.467 133.779 964.57 137.892 966.893 141.179Z" fill="#FF3D9A"/></svg><span>tippos</span></a>
+    <div class="eyebrow">tip-giver intelligence</div>
+    <h1>Make every tip feel easy, personal, and worth giving.</h1>
+    <p>Ask how tippos can win with people who give tips. Answers use the private US evidence database and state what still needs validating.</p>
+    <section class="card" id="access"><label for="code">Private access code</label><input id="code" type="password" autocomplete="current-password" placeholder="Enter your access code"><p class="hint">Stored only for this browser session.</p><button id="unlock">Continue</button><p id="accessError" class="error hidden"></p></section>
+    <section class="card hidden" id="chat"><label for="question">What do you want to know?</label><textarea id="question" placeholder="Example: Which tip givers should tippos focus on first in the US?"></textarea><div class="examples"><button class="example" data-question="What should tippos do next to win with US tip givers?">What next?</button><button class="example" data-question="Which US tip-giver segment should tippos validate first?">Who first?</button><button class="example" data-question="What consumer tipping moment should tippos own first in the US?">Which moment?</button><button class="example" data-question="How should tippos acquire its first 1,000 US tip givers?">Acquire users</button></div><button id="ask">Get strategy</button><p id="status" class="hint"></p></section>
+    <section class="card hidden" id="result"><div id="answer"></div><div class="sources"><strong>Evidence available to this answer</strong><div id="sources"></div></div><p class="limit">This assistant does not yet have live keyword volumes, competitor traffic, merchant interviews, or tippos transaction data.</p></section>
+    <section class="card hidden" id="history"><div class="history-head"><h2>Previous strategies</h2><button id="refreshHistory">Refresh</button></div><p class="hint">Saved securely and shown newest first.</p><div id="historyList" class="history-list"></div></section>
+  </main>
+  <script>
+    const endpoint = 'https://irprsggvvfxakctlotga.supabase.co/functions/v1/market-intelligence-us-strategy';
+    const $ = id => document.getElementById(id); let accessCode = sessionStorage.getItem('tippos-us-strategy-code') || '';
+    const escapeHtml = value => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+    function formatInline(value) { return escapeHtml(value).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/`(.+?)`/g, '<code>$1</code>').replace(/\[([a-z0-9][a-z0-9-]{2,})\]/gi, '<span class="citation">[$1]</span>'); }
+    function renderMarkdown(markdown) {
+      const lines = markdown.replace(/\r/g, '').split('\n'); let html = '', paragraph = [], listType = null, listItems = [];
+      const flushParagraph = () => { if (paragraph.length) { html += '<p>' + formatInline(paragraph.join(' ')) + '</p>'; paragraph = []; } };
+      const flushList = () => { if (listItems.length) { html += '<' + listType + '>' + listItems.map(item => '<li>' + formatInline(item) + '</li>').join('') + '</' + listType + '>'; listType = null; listItems = []; } };
+      for (const line of lines) { const heading = line.match(/^(#{2,3})\s+(.+)$/); const bullet = line.match(/^[-*]\s+(.+)$/); const numbered = line.match(/^\d+[.)]\s+(.+)$/); if (heading) { flushParagraph(); flushList(); const tag = heading[1].length === 2 ? 'h2' : 'h3'; html += '<' + tag + '>' + formatInline(heading[2]) + '</' + tag + '>'; } else if (bullet || numbered) { flushParagraph(); const type = bullet ? 'ul' : 'ol'; if (listType && listType !== type) flushList(); listType = type; listItems.push((bullet || numbered)[1]); } else if (!line.trim()) { flushParagraph(); flushList(); } else { flushList(); paragraph.push(line.trim()); } } flushParagraph(); flushList(); return html; }
+    function sourceLine(item) { const line = document.createElement('div'); line.className = 'source'; const link = document.createElement('a'); link.href = item.source_url; link.target = '_blank'; link.rel = 'noreferrer'; link.textContent = '[' + item.evidence_key + '] ' + item.publisher + ' — ' + item.source_title; line.append(link); return line; }
+    function showStrategy(item) { $('answer').innerHTML = renderMarkdown(item.answer); const evidence = item.evidence || item.evidence_snapshot || []; $('sources').replaceChildren(...evidence.map(sourceLine)); $('result').classList.remove('hidden'); $('result').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    async function loadHistory() { const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json', 'x-strategy-access-code': accessCode }, body: JSON.stringify({ action: 'history' }) }); const data = await r.json(); if (!r.ok) throw new Error(data.error || 'Unable to load history'); const items = data.strategies || []; $('historyList').replaceChildren(...items.map(item => { const button = document.createElement('button'); button.className = 'history-item'; const title = document.createElement('strong'); title.textContent = item.question; const date = document.createElement('span'); date.textContent = new Date(item.created_at).toLocaleString(); button.append(title, date); button.onclick = () => showStrategy(item); return button; })); if (!items.length) $('historyList').textContent = 'Your generated strategies will appear here.'; $('history').classList.remove('hidden'); }
+    function showChat() { $('access').classList.add('hidden'); $('chat').classList.remove('hidden'); $('question').focus(); loadHistory().catch(error => { $('status').textContent = error.message; }); }
+    if (accessCode) showChat();
+    $('unlock').onclick = () => { const value = $('code').value.trim(); if (!value) { $('accessError').textContent = 'Enter the access code.'; $('accessError').classList.remove('hidden'); return; } accessCode = value; sessionStorage.setItem('tippos-us-strategy-code', value); showChat(); };
+    document.querySelectorAll('.example').forEach(button => button.onclick = () => { $('question').value = button.dataset.question; $('question').focus(); });
+    $('refreshHistory').onclick = () => loadHistory().catch(error => { $('status').textContent = error.message; });
+    $('ask').onclick = async () => { const question = $('question').value.trim(); if (!question) { $('status').textContent = 'Write a question first.'; return; } $('ask').disabled = true; $('status').textContent = 'Reading the US evidence and forming a strategy…'; try { const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json', 'x-strategy-access-code': accessCode }, body: JSON.stringify({ question }) }); const data = await r.json(); if (!r.ok) { if (r.status === 401) { sessionStorage.removeItem('tippos-us-strategy-code'); accessCode = ''; $('chat').classList.add('hidden'); $('access').classList.remove('hidden'); $('accessError').textContent = 'That access code was not accepted.'; $('accessError').classList.remove('hidden'); } throw new Error(data.error || 'Request failed'); } showStrategy(data); $('status').textContent = ''; await loadHistory(); } catch (error) { $('status').textContent = error.message || 'Unable to get strategy.'; } finally { $('ask').disabled = false; } };
+  </script>
+</body>
+</html>
