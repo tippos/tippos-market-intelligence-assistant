@@ -9,9 +9,9 @@
     @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@10..48,75..100,600..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
     :root { font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; color: #0B0B0F; background: #FFF0F7; }
     body { margin: 0; background: radial-gradient(circle at 10% 0%, #f1eaff 0, transparent 31rem), linear-gradient(145deg, #FFF0F7, #fff 52%, #f7f2ff); } .wrap { max-width: 880px; margin: 0 auto; padding: 38px 20px 80px; }
-    .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; } .brand { display: inline-flex; align-items: center; text-decoration: none; } .brand-logo { display: block; width: 190px; max-width: 55vw; height: auto; } .internal-badge { border: 1px solid #e8cddd; border-radius: 999px; color: #7C3AED; background: #fff8fc; padding: 7px 10px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .brand-row { display: flex; align-items: center; justify-content: flex-end; } .heading-logo { display: block; width: auto; height: .92em; flex: 0 0 auto; } .internal-badge { border: 1px solid #e8cddd; border-radius: 999px; color: #7C3AED; background: #fff8fc; padding: 7px 10px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
     .eyebrow { color: #7C3AED; font-weight: 800; letter-spacing: .09em; font-size: 12px; text-transform: uppercase; margin-top: 48px; }
-    h1 { font-size: clamp(32px, 6vw, 56px); letter-spacing: -.055em; line-height: .98; margin: 12px 0 16px; max-width: 680px; }
+    h1 { display: flex; align-items: center; flex-wrap: wrap; gap: .2em; font-size: clamp(32px, 6vw, 56px); letter-spacing: -.055em; line-height: .98; margin: 12px 0 16px; max-width: 680px; }
     p { line-height: 1.6; color: #4a4651; } .card { background: #fff; border: 1px solid #f0d8e5; border-radius: 22px; padding: 22px; box-shadow: 0 12px 35px -18px #7C3AED36, 0 3px 10px #FF3D9A0d; margin-top: 24px; }
     label { display: block; font-weight: 700; margin-bottom: 8px; } input, textarea { box-sizing: border-box; width: 100%; border: 1px solid #ebd4e1; border-radius: 12px; padding: 13px 14px; font: inherit; color: #0B0B0F; } input:focus, textarea:focus { outline: 3px solid #f7d5e8; border-color: #FF3D9A; }
     textarea { min-height: 132px; resize: vertical; } button { border: 0; border-radius: 12px; background: #FF3D9A; color: #fff; font: inherit; font-weight: 750; padding: 12px 16px; cursor: pointer; margin-top: 12px; box-shadow: 0 7px 16px #FF3D9A38; }
@@ -28,9 +28,9 @@
 </head>
 <body>
   <main class="wrap">
-    <div class="brand-row"><a class="brand" href="#top" aria-label="Tippos"><img class="brand-logo" src="tippos-logo.png" alt="Tippos"></a><span class="internal-badge">Internal tool</span></div>
+    <div class="brand-row"><span class="internal-badge">Internal tool</span></div>
     <div class="eyebrow">Marketing intelligence workspace</div>
-    <h1>tippos intelligence</h1>
+    <h1><img class="heading-logo" src="tippos-logo.png" alt="tippos"><span>Intelligence</span></h1>
     <p>A private tool for Tippos employees to analyze search behavior, competitors, customer moments, and evidence-backed marketing opportunities.</p>
     <section class="card" id="access"><label for="code">Employee access code</label><input id="code" type="password" autocomplete="current-password" placeholder="Enter your access code"><p class="hint">For authorized Tippos team members. Stored only for this browser session.</p><button id="unlock">Open workspace</button><p id="accessError" class="error hidden"></p></section>
     <section class="card hidden" id="chat"><label for="question">What should Tippos investigate?</label><textarea id="question" placeholder="Example: Which search opportunities should the Tippos marketing team prioritize next?"></textarea><div class="examples"><button class="example" data-question="What should the Tippos marketing team prioritize next?">Marketing priorities</button><button class="example" data-question="Which search opportunities should Tippos pursue first?">Search opportunities</button><button class="example" data-question="Where are competitors winning search and AI visibility?">Competitor visibility</button><button class="example" data-question="What marketing campaign should Tippos test next?">Campaign test</button></div><button id="ask">Build marketing strategy</button><p id="status" class="hint"></p></section>
