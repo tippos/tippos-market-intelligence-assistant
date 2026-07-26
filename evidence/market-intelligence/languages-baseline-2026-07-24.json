@@ -1,0 +1,209 @@
+[
+  {
+    "code": "ar",
+    "notes": "Requires RTL product validation",
+    "native_name": "العربية",
+    "english_name": "Arabic",
+    "product_status": "researching",
+    "text_direction": "rtl",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "bn",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "বাংলা",
+    "english_name": "Bengali",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "de",
+    "notes": "Candidate market",
+    "native_name": "Deutsch",
+    "english_name": "German",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "en",
+    "notes": "Already present in the product",
+    "native_name": "English",
+    "english_name": "English",
+    "product_status": "supported",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "es",
+    "notes": "Already present in the product",
+    "native_name": "Español",
+    "english_name": "Spanish",
+    "product_status": "supported",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "fa",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "فارسی",
+    "english_name": "Persian",
+    "product_status": "researching",
+    "text_direction": "rtl",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "fr",
+    "notes": "Candidate market",
+    "native_name": "Français",
+    "english_name": "French",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "gu",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "ગુજરાતી",
+    "english_name": "Gujarati",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "he",
+    "notes": "Requires RTL product validation",
+    "native_name": "עברית",
+    "english_name": "Hebrew",
+    "product_status": "researching",
+    "text_direction": "rtl",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "hi",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "हिन्दी",
+    "english_name": "Hindi",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "ht",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "Kreyòl Ayisyen",
+    "english_name": "Haitian Creole",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "it",
+    "notes": "Candidate market",
+    "native_name": "Italiano",
+    "english_name": "Italian",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "ja",
+    "notes": "Requires product and payment-market validation",
+    "native_name": "日本語",
+    "english_name": "Japanese",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "ko",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "한국어",
+    "english_name": "Korean",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "nl",
+    "notes": "Candidate market",
+    "native_name": "Nederlands",
+    "english_name": "Dutch",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "pl",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "Polski",
+    "english_name": "Polish",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "pt",
+    "notes": "Candidate market",
+    "native_name": "Português",
+    "english_name": "Portuguese",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "ru",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "Русский",
+    "english_name": "Russian",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "tl",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "Tagalog",
+    "english_name": "Tagalog",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "und",
+    "notes": "Temporary classification for observations that require language enrichment",
+    "native_name": "Undetermined",
+    "english_name": "Undetermined",
+    "product_status": "not_evaluated",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "ur",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "اردو",
+    "english_name": "Urdu",
+    "product_status": "researching",
+    "text_direction": "rtl",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "vi",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "Tiếng Việt",
+    "english_name": "Vietnamese",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  },
+  {
+    "code": "zh",
+    "notes": "US market-language research candidate. Added from US Census ACS language-use coverage; not an automatic localization or launch decision.",
+    "native_name": "中文",
+    "english_name": "Chinese",
+    "product_status": "researching",
+    "text_direction": "ltr",
+    "estimated_localization_cost": null
+  }
+]
