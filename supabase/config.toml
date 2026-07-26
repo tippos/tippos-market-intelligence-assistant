@@ -1,0 +1,19 @@
+project_id = "tippos-market-intelligence"
+
+[functions.market-intelligence-ingest]
+verify_jwt = false
+
+[functions.market-intelligence-gsc-sync]
+verify_jwt = true
+
+[functions.market-intelligence-google-ads-sync]
+verify_jwt = true
+
+[functions.market-intelligence-google-ads-discover]
+verify_jwt = true
+
+[functions.market-intelligence-openai]
+verify_jwt = false
+
+[functions.market-intelligence-us-strategy]
+verify_jwt = false

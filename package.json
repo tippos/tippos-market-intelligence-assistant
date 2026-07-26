@@ -1,0 +1,10 @@
+{
+  "name": "@tippos/market-intelligence",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "check": "node scripts/validate-market-intelligence.mjs",
+    "test": "npx --yes deno@2.9.4 test --no-lock --allow-env supabase/functions/_shared/market_intelligence.test.ts supabase/functions/_shared/market_intelligence_runtime.test.ts supabase/functions/_shared/google_search_console.test.ts supabase/functions/_shared/google_ads_keyword_planner.test.ts supabase/functions/_shared/openai_visibility.test.ts supabase/functions/_shared/strategy_access.test.ts"
+  }
+}
