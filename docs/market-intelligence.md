@@ -41,6 +41,7 @@ A language cannot receive an implementation recommendation with less than 35% co
 | Sources | `sources`, `connector_accounts`, `connector_configs` | Connector state; only secret references, never secret values |
 | Jobs | `collection_jobs`, `collection_job_attempts`, `raw_observations` | Retryable jobs, provenance, raw retention and deduplication |
 | Search | `keywords`, `keyword_variants`, `topics`, `keyword_topics`, `search_metrics` | Canonical multilingual demand time series |
+| Trends | `trends_imports`, `trends_interest_over_time`, `trends_geo_metrics`, `trends_related_terms` | Private, manually exported Google Trends relative-interest evidence |
 | SERP | `search_results_snapshots`, `search_result_items`, `domains` | Authorized ranking snapshots and canonical domains |
 | AI | `ai_prompt_sets`, `ai_prompts`, `ai_runs`, `ai_responses`, `ai_mentions`, `ai_citations`, `brands` | Repeatable model visibility, citations and competitors |
 | Evidence | `market_evidence` | Cited, structured facts from authoritative public sources; kept separate from search demand |
@@ -61,6 +62,20 @@ Its response includes the plain-English answer, the complete source records supp
 
 The separate private browser page is `tools/tippos-us-strategy-assistant.html`. It is not part of the existing tippos website or Lovable project.
 
+### Google Trends in the private assistant
+
+After unlocking the private page, an employee can import a single US Google Trends
+CSV export. Select the matching export type: interest over time (one query only),
+interest by subregion, related queries, or related topics. The server parses and
+stores only the bounded signals and a SHA-256 file checksum; it does not retain the
+CSV file itself. The next strategy request receives the resulting evidence alongside
+the cited market evidence and qualitative search signals.
+
+Google Trends values remain exactly what Google provides: relative 0–100 indexes or
+related-term rankings within the selected query, geography, period, category, and
+search type. They are never treated as keyword volume, market size, or comparable
+between unrelated exports.
+
 Every measurement has source, observation date, data nature and confidence. `event_at` is distinct from `ingested_at`. Missing values remain null rather than being converted to zero.
 
 Google Ads Keyword Planner and Google Search Console answer different questions:
@@ -73,6 +88,8 @@ Google Ads Keyword Planner and Google Search Console answer different questions:
 - `google_search_console` is a secondary first-party visibility source. It stores queries for
   which a `tippos.app` page appeared in Google Search, with clicks, impressions, CTR and average
   position. It does not estimate total market demand.
+- `google_trends` is a manual qualitative/relative-demand source. It provides relative interest
+  and related terms from an exact export, not absolute searches or competitor traffic.
 
 `market_intelligence.v_data_dictionary` exposes the live table/column/type/default catalog to trusted server-side tooling, so the dictionary cannot drift from the applied schema.
 

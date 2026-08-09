@@ -63,7 +63,8 @@ const reconciledAdditionalVersions = [
   "20260724191056",
   "20260724210000",
   "20260725200649",
-  "20260809014500",
+  "20260808224532",
+  "20260809114932",
 ];
 const obsoleteRetimestampedVersions = [
   "20260723004822",
@@ -143,7 +144,8 @@ const convergence = readMigration("20260724190745");
 const referenceEvidence = readMigration("20260724191056");
 const strategyGuard = readMigration("20260724210000");
 const searchMetricActivationGuard = readMigration("20260725200649");
-const googleTrendsManualImports = readMigration("20260809014500");
+const googleTrendsManualImports = readMigration("20260808224532");
+const googleTrendsStrategySignals = readMigration("20260809114932");
 const strategy = readFileSync(
   "supabase/functions/market-intelligence-us-strategy/index.ts",
   "utf8",
@@ -480,10 +482,27 @@ assert(
   "Google Trends imports must remain relative manual evidence, never search-volume estimates",
 );
 assert(
-  googleTrendsManualImports.includes("trends_imports_source_id_idx") &&
-    googleTrendsManualImports.includes("trends_imports_query_country_period_idx") &&
-    googleTrendsManualImports.includes("relative_interest BETWEEN 0 AND 100"),
-  "Google Trends tables must preserve foreign-key lookup indexes and bounded relative interest",
+  googleTrendsStrategySignals.includes("trends_interest_over_time") &&
+    googleTrendsStrategySignals.includes("mi_import_google_trends_export") &&
+    googleTrendsStrategySignals.includes("mi_get_us_strategy_google_trends_evidence") &&
+    googleTrendsStrategySignals.includes("trends_imports_source_id_idx") &&
+    googleTrendsStrategySignals.includes("trends_imports_query_country_period_idx") &&
+    googleTrendsStrategySignals.includes("trends_imports_strategy_dataset_idx") &&
+    googleTrendsStrategySignals.includes("trends_imports_metadata_object") &&
+    googleTrendsStrategySignals.includes("trends_geo_metrics_relative_interest_check"),
+  "Google Trends imports must be available as private strategy evidence",
+);
+assert(
+  strategy.includes("mi_get_us_strategy_google_trends_evidence") &&
+    strategy.includes("import_google_trends") &&
+    strategy.includes("relative 0-100 interest index"),
+  "strategy assistant must retrieve and describe Google Trends evidence safely",
+);
+assert(
+  strategyTool.includes('id="googleTrendsImport"') &&
+    strategyTool.includes('action: "import_google_trends"') &&
+    strategyTool.includes("not search volume"),
+  "private strategy page must offer a labeled Google Trends CSV import",
 );
 assert(
   googleAds.includes("'third_party'"),

@@ -23,22 +23,13 @@ CREATE TABLE IF NOT EXISTS market_intelligence.trends_imports (
   extracted_at timestamptz NOT NULL DEFAULT now(),
   file_checksum text NOT NULL UNIQUE,
   metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
-  CONSTRAINT trends_imports_period_order CHECK (
-    period_start IS NULL OR period_end IS NULL OR period_start <= period_end
-  ),
-  CONSTRAINT trends_imports_metadata_object CHECK (jsonb_typeof(metadata) = 'object'),
   created_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS trends_imports_source_id_idx
-  ON market_intelligence.trends_imports (source_id);
-CREATE INDEX IF NOT EXISTS trends_imports_query_country_period_idx
-  ON market_intelligence.trends_imports
-  (normalized_query, country_code, period_start, period_end);
 
 CREATE TABLE IF NOT EXISTS market_intelligence.trends_geo_metrics (
   import_id uuid NOT NULL REFERENCES market_intelligence.trends_imports(id) ON DELETE CASCADE,
   region_name text NOT NULL, region_code text, raw_value text,
-  relative_interest numeric(6,2) CHECK (relative_interest BETWEEN 0 AND 100),
+  relative_interest numeric(6,2),
   is_suppressed boolean NOT NULL DEFAULT false, PRIMARY KEY (import_id, region_name)
 );
 CREATE TABLE IF NOT EXISTS market_intelligence.trends_related_terms (
