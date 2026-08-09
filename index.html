@@ -1,124 +1,586 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
-  <title>tippos Intelligence</title>
-  <style>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="referrer" content="no-referrer">
+    <title>tippos Intelligence</title>
+    <style>
     @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@10..48,75..100,600..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-    :root { font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; color: #0B0B0F; background: #FFF0F7; }
-    body { margin: 0; background: radial-gradient(circle at 10% 0%, #f1eaff 0, transparent 31rem), linear-gradient(145deg, #FFF0F7, #fff 52%, #f7f2ff); } .wrap { max-width: 880px; margin: 0 auto; padding: 38px 20px 80px; }
-    .brand-row { display: flex; align-items: center; justify-content: flex-end; } .heading-logo { display: block; width: auto; height: .92em; flex: 0 0 auto; } .internal-badge { border: 1px solid #e8cddd; border-radius: 999px; color: #7C3AED; background: #fff8fc; padding: 7px 10px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-    .eyebrow { color: #7C3AED; font-weight: 800; letter-spacing: .09em; font-size: 12px; text-transform: uppercase; margin-top: 48px; }
-    h1 { display: flex; align-items: center; flex-wrap: wrap; gap: .2em; font-size: clamp(32px, 6vw, 56px); letter-spacing: -.055em; line-height: .98; margin: 12px 0 16px; max-width: 680px; }
-    p { line-height: 1.6; color: #4a4651; } .card { background: #fff; border: 1px solid #f0d8e5; border-radius: 22px; padding: 22px; box-shadow: 0 12px 35px -18px #7C3AED36, 0 3px 10px #FF3D9A0d; margin-top: 24px; }
-    label { display: block; font-weight: 700; margin-bottom: 8px; } input, textarea { box-sizing: border-box; width: 100%; border: 1px solid #ebd4e1; border-radius: 12px; padding: 13px 14px; font: inherit; color: #0B0B0F; } input:focus, textarea:focus { outline: 3px solid #f7d5e8; border-color: #FF3D9A; }
-    textarea { min-height: 132px; resize: vertical; } button { border: 0; border-radius: 12px; background: #FF3D9A; color: #fff; font: inherit; font-weight: 750; padding: 12px 16px; cursor: pointer; margin-top: 12px; box-shadow: 0 7px 16px #FF3D9A38; }
-    button:disabled { opacity: .55; cursor: wait; } .hint, .limit { font-size: 13px; margin-top: 8px; } .examples { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-    .example { background: #FFF0F7; color: #7C3AED; box-shadow: none; margin: 0; font-size: 13px; } .hidden { display: none; } #answer { white-space: pre-wrap; line-height: 1.62; color: #0B0B0F; }
-    .error { color: #c51f5d; } .sources { margin-top: 24px; border-top: 1px solid #f1deea; padding-top: 18px; } .source { margin: 10px 0; font-size: 14px; } .source a { color: #7C3AED; }
-    #answer h2 { font: 700 21px/1.15 'Bricolage Grotesque', ui-sans-serif, sans-serif; letter-spacing: -.025em; margin: 28px 0 10px; color: #7C3AED; } #answer h2:first-child { margin-top: 0; }
-    #answer h3 { font: 700 16px/1.2 'Bricolage Grotesque', ui-sans-serif, sans-serif; margin: 20px 0 8px; } #answer p { color: #0B0B0F; margin: 0 0 15px; } #answer ul, #answer ol { padding-left: 24px; margin: 0 0 18px; }
-    #answer li { margin: 9px 0; line-height: 1.58; } #answer strong { color: #0B0B0F; } .citation { display: inline-block; font-size: 12px; font-weight: 700; color: #8a1c5a; background: #FFF0F7; border-radius: 5px; padding: 1px 5px; margin: 1px 2px; }
-    .history-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; } .history-head h2 { margin: 0; font-size: 22px; } .history-head button { margin: 0; background: #7C3AED; }
-    .history-list { display: grid; gap: 10px; margin-top: 16px; } .history-item { width: 100%; margin: 0; padding: 14px; text-align: left; color: #0B0B0F; background: #fff7fb; border: 1px solid #f0d8e5; box-shadow: none; }
-    .history-item strong, .history-item span { display: block; } .history-item span { margin-top: 5px; color: #706876; font-size: 12px; font-weight: 500; }
-  </style>
-</head>
-<body>
-  <main class="wrap">
-    <div class="brand-row"><span class="internal-badge">Internal tool</span></div>
-    <div class="eyebrow">Marketing intelligence workspace</div>
-    <h1><img class="heading-logo" src="tippos-logo.png" alt="tippos"><span>Intelligence</span></h1>
-    <p>A private tool for Tippos employees to analyze search behavior, competitors, customer moments, and evidence-backed marketing opportunities.</p>
-    <section class="card" id="access"><label for="code">Employee access code</label><input id="code" type="password" autocomplete="current-password" placeholder="Enter your access code"><p class="hint">For authorized Tippos team members. Stored only for this browser session.</p><button id="unlock">Open workspace</button><p id="accessError" class="error hidden"></p></section>
-    <section class="card hidden" id="chat"><label for="question">What should Tippos investigate?</label><textarea id="question" placeholder="Example: Which search opportunities should the Tippos marketing team prioritize next?"></textarea><div class="examples"><button class="example" data-question="What should the Tippos marketing team prioritize next?">Marketing priorities</button><button class="example" data-question="Which search opportunities should Tippos pursue first?">Search opportunities</button><button class="example" data-question="Where are competitors winning search and AI visibility?">Competitor visibility</button><button class="example" data-question="What marketing campaign should Tippos test next?">Campaign test</button></div><button id="ask">Build marketing strategy</button><p id="status" class="hint"></p></section>
-    <section class="card hidden" id="result"><div id="answer"></div><div class="sources"><strong>Evidence and signals used</strong><div id="sources"></div></div><p class="limit">Autocomplete and manual SERP observations are available. Live market-wide keyword volume and competitor traffic are not yet connected.</p></section>
-    <section class="card hidden" id="history"><div class="history-head"><h2>Saved marketing strategies</h2><button id="refreshHistory">Refresh</button></div><p class="hint">Shared internal strategy history, newest first.</p><div id="historyList" class="history-list"></div></section>
-  </main>
-  <script>
-    const endpoint = 'https://irprsggvvfxakctlotga.supabase.co/functions/v1/market-intelligence-us-strategy';
-    const $ = id => document.getElementById(id); let accessCode = sessionStorage.getItem('tippos-us-strategy-code') || '';
-    const escapeHtml = value => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
-    function formatInline(value) { return escapeHtml(value).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/`(.+?)`/g, '<code>$1</code>').replace(/\[([a-z0-9][a-z0-9-]{2,})\]/gi, '<span class="citation">[$1]</span>'); }
+    :root {
+      font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+      color: #0B0B0F;
+      background: #FFF0F7;
+    }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 10% 0%, #f1eaff 0, transparent 31rem),
+        linear-gradient(145deg, #FFF0F7, #fff 52%, #f7f2ff);
+    }
+    .wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 38px 20px 80px;
+    }
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .internal-badge {
+      border: 1px solid #e8cddd;
+      border-radius: 999px;
+      color: #7C3AED;
+      background: #fff8fc;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .eyebrow {
+      color: #7C3AED;
+      font-weight: 800;
+      letter-spacing: .09em;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-top: 48px;
+    }
+    h1 {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: .2em;
+      font-size: clamp(32px, 6vw, 56px);
+      letter-spacing: -.055em;
+      line-height: .98;
+      margin: 12px 0 16px;
+      max-width: 680px;
+    }
+    .heading-logo {
+      display: block;
+      width: auto;
+      height: .92em;
+      flex: 0 0 auto;
+    }
+    p {
+      line-height: 1.6;
+      color: #4a4651;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #f0d8e5;
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 12px 35px -18px #7C3AED36, 0 3px 10px #FF3D9B0d;
+      margin-top: 24px;
+    }
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    input,
+    select,
+    textarea {
+      box-sizing: border-box;
+      width: 100%;
+      border: 1px solid #ebd4e1;
+      border-radius: 12px;
+      padding: 13px 14px;
+      font: inherit;
+      color: #0B0B0F;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 3px solid #f7d5e8;
+      border-color: #FF3D9B;
+    }
+    textarea {
+      min-height: 132px;
+      resize: vertical;
+    }
+    button {
+      border: 0;
+      border-radius: 12px;
+      background: #FF3D9B;
+      color: #fff;
+      font: inherit;
+      font-weight: 750;
+      padding: 12px 16px;
+      cursor: pointer;
+      margin-top: 12px;
+      box-shadow: 0 7px 16px #FF3D9B38;
+    }
+    button:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+    .hint,
+    .limit {
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .examples {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .example {
+      background: #FFF0F7;
+      color: #7C3AED;
+      box-shadow: none;
+      margin: 0;
+      font-size: 13px;
+    }
+    .hidden {
+      display: none;
+    }
+    #answer {
+      white-space: pre-wrap;
+      line-height: 1.62;
+      color: #0B0B0F;
+    }
+    .error {
+      color: #c51f5d;
+    }
+    .sources {
+      margin-top: 24px;
+      border-top: 1px solid #f1deea;
+      padding-top: 18px;
+    }
+    .source {
+      margin: 10px 0;
+      font-size: 14px;
+    }
+    .source a {
+      color: #7C3AED;
+    }
+    #answer h2 {
+      font: 700 21px/1.15 'Bricolage Grotesque', ui-sans-serif, sans-serif;
+      letter-spacing: -.025em;
+      margin: 28px 0 10px;
+      color: #7C3AED;
+    }
+    #answer h2:first-child {
+      margin-top: 0;
+    }
+    #answer h3 {
+      font: 700 16px/1.2 'Bricolage Grotesque', ui-sans-serif, sans-serif;
+      margin: 20px 0 8px;
+    }
+    #answer p {
+      color: #0B0B0F;
+      margin: 0 0 15px;
+    }
+    #answer ul,
+    #answer ol {
+      padding-left: 24px;
+      margin: 0 0 18px;
+    }
+    #answer li {
+      margin: 9px 0;
+      line-height: 1.58;
+    }
+    #answer strong {
+      color: #0B0B0F;
+    }
+    .citation {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #8a1c5a;
+      background: #FFF0F7;
+      border-radius: 5px;
+      padding: 1px 5px;
+      margin: 1px 2px;
+    }
+    .history-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .history-head h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+    .history-head button {
+      margin: 0;
+      background: #7C3AED;
+    }
+    .history-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .history-item {
+      width: 100%;
+      margin: 0;
+      padding: 14px;
+      text-align: left;
+      color: #0B0B0F;
+      background: #fff7fb;
+      border: 1px solid #f0d8e5;
+      box-shadow: none;
+    }
+    .history-item strong,
+    .history-item span {
+      display: block;
+    }
+    .history-item span {
+      margin-top: 5px;
+      color: #706876;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .trends-import summary {
+      color: #7C3AED;
+      cursor: pointer;
+      font-weight: 800;
+    }
+    .trends-import[open] summary {
+      margin-bottom: 14px;
+    }
+    .import-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .import-grid .wide {
+      grid-column: 1 / -1;
+    }
+    .import-grid label {
+      font-size: 13px;
+    }
+    .import-grid input,
+    .import-grid select {
+      margin-top: 6px;
+    }
+    @media (max-width: 560px) {
+      .import-grid { grid-template-columns: 1fr; }
+      .import-grid .wide { grid-column: auto; }
+    }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <div class="brand-row"><span class="internal-badge">Internal tool</span></div>
+      <div class="eyebrow">Marketing intelligence workspace</div>
+      <h1><img class="heading-logo" src="tippos-logo.png" alt="tippos"><span>Intelligence</span></h1>
+      <p>A private tool for tippos employees to analyze search behavior, competitors, customer moments, and evidence-backed marketing opportunities.</p>
+      <section class="card"
+        id="access"><label for="code">Employee access code</label><input id="code" type="password" autocomplete="current-password" placeholder="Enter your access code"><p class="hint">For authorized tippos team members. Stored only for this browser session.</p><button id="unlock">Open workspace</button><p id="accessError" class="error hidden"></p></section>
+      <section class="card hidden"
+        id="chat"><label for="question">What should tippos investigate?</label><textarea id="question" placeholder="Example: Which search opportunities should the tippos marketing team prioritize next?"></textarea><div class="examples"><button class="example" data-question="What should the tippos marketing team prioritize next?">Marketing priorities</button><button class="example" data-question="Which search opportunities should tippos pursue first?">Search opportunities</button><button class="example" data-question="Where are competitors winning search and AI visibility?">Competitor visibility</button><button class="example" data-question="What marketing campaign should tippos test next?">Campaign test</button></div><button id="ask">Build marketing strategy</button><p id="status" class="hint"></p></section>
+      <section class="card hidden" id="googleTrendsImport">
+        <details class="trends-import">
+          <summary>Import Google Trends CSV</summary>
+          <p class="hint">Export one US Google Trends chart as CSV, then choose its matching type below. tippos stores only its parsed relative-interest signals and file checksum&mdash;never the CSV itself. These 0&ndash;100 values are not search volume.</p>
+          <div class="import-grid">
+            <label class="wide" for="trendsQuery">Google Trends query<input id="trendsQuery" maxlength="500" placeholder="Example: how much should i tip"></label>
+            <label for="trendsDataset">CSV type<select id="trendsDataset"><option value="interest_over_time">Interest over time (single query)</option><option value="interest_by_subregion">Interest by subregion</option><option value="related_queries">Related queries</option><option value="related_topics">Related topics</option></select></label>
+            <label for="trendsFile">Google Trends CSV<input id="trendsFile" type="file" accept=".csv,text/csv"></label>
+            <label for="trendsPeriodStart">Selected period starts (optional)<input id="trendsPeriodStart" type="date"></label>
+            <label for="trendsPeriodEnd">Selected period ends (optional)<input id="trendsPeriodEnd" type="date"></label>
+          </div>
+          <button id="importTrends" type="button">Import Google Trends signal</button>
+          <p id="trendsStatus" class="hint" aria-live="polite"></p>
+        </details>
+      </section>
+      <section class="card hidden" id="result">
+        <div id="answer"></div>
+        <div
+          class="sources"><strong>Evidence and signals used</strong><div id="sources"></div></div>
+        <p
+          class="limit">Imported Google Trends CSVs are relative-interest signals, not market-wide keyword volume. Autocomplete and manual SERP observations are qualitative signals; competitor traffic is not connected.</p>
+      </section>
+      <section class="card hidden" id="history">
+        <div
+          class="history-head"><h2>Saved marketing strategies</h2><button id="refreshHistory">Refresh</button></div>
+        <p class="hint">Shared internal strategy history, newest first.</p>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </main>
+    <script>
+    const endpoint =
+      "https://irprsggvvfxakctlotga.supabase.co/functions/v1/market-intelligence-us-strategy";
+    const $ = (id) => document.getElementById(id);
+    let accessCode = sessionStorage.getItem("tippos-us-strategy-code") || "";
+    const escapeHtml = (value) =>
+      value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+    function formatInline(value) {
+      return escapeHtml(value).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+        .replace(/`(.+?)`/g, "<code>$1</code>").replace(
+          /\[([a-z0-9][a-z0-9-]{2,})\]/gi,
+          '<span class="citation">[$1]</span>',
+        );
+    }
     function renderMarkdown(markdown) {
-      const lines = markdown.replace(/\r/g, '').split('\n'); let html = '', paragraph = [], listType = null, listItems = [];
-      const flushParagraph = () => { if (paragraph.length) { html += '<p>' + formatInline(paragraph.join(' ')) + '</p>'; paragraph = []; } };
-      const flushList = () => { if (listItems.length) { html += '<' + listType + '>' + listItems.map(item => '<li>' + formatInline(item) + '</li>').join('') + '</' + listType + '>'; listType = null; listItems = []; } };
-      for (const line of lines) { const heading = line.match(/^(#{2,3})\s+(.+)$/); const bullet = line.match(/^[-*]\s+(.+)$/); const numbered = line.match(/^\d+[.)]\s+(.+)$/); if (heading) { flushParagraph(); flushList(); const tag = heading[1].length === 2 ? 'h2' : 'h3'; html += '<' + tag + '>' + formatInline(heading[2]) + '</' + tag + '>'; } else if (bullet || numbered) { flushParagraph(); const type = bullet ? 'ul' : 'ol'; if (listType && listType !== type) flushList(); listType = type; listItems.push((bullet || numbered)[1]); } else if (!line.trim()) { flushParagraph(); flushList(); } else { flushList(); paragraph.push(line.trim()); } } flushParagraph(); flushList(); return html; }
-    function sourceLine(item) { const line = document.createElement('div'); line.className = 'source'; if (item.source_url) { const link = document.createElement('a'); link.href = item.source_url; link.target = '_blank'; link.rel = 'noreferrer'; link.textContent = '[' + item.evidence_key + '] ' + item.publisher + ' — ' + item.source_title; line.append(link); } else { line.textContent = '[search signal] ' + (item.query_text || 'Observed query') + ' — ' + (item.source_key || 'manual observation'); } return line; }
-    function showStrategy(item) { $('answer').innerHTML = renderMarkdown(item.answer); const evidence = item.evidence || item.evidence_snapshot || []; $('sources').replaceChildren(...evidence.map(sourceLine)); $('result').classList.remove('hidden'); $('result').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-    async function loadHistory() {
-      const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json', 'x-strategy-access-code': accessCode }, body: JSON.stringify({ action: 'history' }) });
+      const lines = markdown.replace(/\r/g, "").split("\n");
+      let html = "", paragraph = [], listType = null, listItems = [];
+      const flushParagraph = () => {
+        if (paragraph.length) {
+          html += "<p>" + formatInline(paragraph.join(" ")) + "</p>";
+          paragraph = [];
+        }
+      };
+      const flushList = () => {
+        if (listItems.length) {
+          html += "<" + listType + ">" + listItems.map((item) =>
+            "<li>" + formatInline(item) + "</li>"
+          ).join("") + "</" + listType + ">";
+          listType = null;
+          listItems = [];
+        }
+      };
+      for (const line of lines) {
+        const heading = line.match(/^(#{2,3})\s+(.+)$/);
+        const bullet = line.match(/^[-*]\s+(.+)$/);
+        const numbered = line.match(/^\d+[.)]\s+(.+)$/);
+        if (heading) {
+          flushParagraph();
+          flushList();
+          const tag = heading[1].length === 2 ? "h2" : "h3";
+          html += "<" + tag + ">" + formatInline(heading[2]) + "</" + tag + ">";
+        } else if (bullet || numbered) {
+          flushParagraph();
+          const type = bullet ? "ul" : "ol";
+          if (listType && listType !== type) flushList();
+          listType = type;
+          listItems.push((bullet || numbered)[1]);
+        } else if (!line.trim()) {
+          flushParagraph();
+          flushList();
+        } else {
+          flushList();
+          paragraph.push(line.trim());
+        }
+      }
+      flushParagraph();
+      flushList();
+      return html;
+    }
+    function safeHttpUrl(value) {
+      try {
+        const url = new URL(value);
+        return url.protocol === "https:" || url.protocol === "http:"
+          ? url.href
+          : null;
+      } catch {
+        return null;
+      }
+    }
+    function sourceLine(item) {
+      const line = document.createElement("div");
+      line.className = "source";
+      const safeUrl = safeHttpUrl(item.source_url);
+      if (safeUrl) {
+        const link = document.createElement("a");
+        link.href = safeUrl;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "[" + item.evidence_key + "] " + item.publisher + " — " +
+          item.source_title;
+        line.append(link);
+      } else {line.textContent = "[search signal] " +
+          (item.query_text || "Observed query") + " — " +
+          (item.source_key || "manual observation");}
+      return line;
+    }
+    function showStrategy(item) {
+      $("answer").innerHTML = renderMarkdown(item.answer);
+      const evidence = item.evidence || item.evidence_snapshot || [];
+      $("sources").replaceChildren(...evidence.map(sourceLine));
+      $("result").classList.remove("hidden");
+      $("result").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    async function loadHistory(code = accessCode) {
+      const r = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-strategy-access-code": code,
+        },
+        body: JSON.stringify({ action: "history" }),
+      });
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
-        const error = new Error(data.error || 'Unable to load history');
+        const error = new Error(data.error || "Unable to load history");
         error.status = r.status;
         throw error;
       }
       const items = data.strategies || [];
-      $('historyList').replaceChildren(...items.map(item => { const button = document.createElement('button'); button.className = 'history-item'; const title = document.createElement('strong'); title.textContent = item.question; const date = document.createElement('span'); date.textContent = new Date(item.created_at).toLocaleString(); button.append(title, date); button.onclick = () => showStrategy(item); return button; }));
-      if (!items.length) $('historyList').textContent = 'Your generated strategies will appear here.';
-      $('history').classList.remove('hidden');
-    }
-    function lockWorkspace(message = '') {
-      sessionStorage.removeItem('tippos-us-strategy-code');
-      accessCode = '';
-      $('chat').classList.add('hidden');
-      $('result').classList.add('hidden');
-      $('history').classList.add('hidden');
-      $('access').classList.remove('hidden');
-      $('status').textContent = '';
-      $('accessError').textContent = message;
-      $('accessError').classList.toggle('hidden', !message);
-      $('code').value = '';
-      $('code').focus();
+      $("historyList").replaceChildren(...items.map((item) => {
+        const button = document.createElement("button");
+        button.className = "history-item";
+        const title = document.createElement("strong");
+        title.textContent = item.question;
+        const date = document.createElement("span");
+        date.textContent = new Date(item.created_at).toLocaleString();
+        button.append(title, date);
+        button.onclick = () => showStrategy(item);
+        return button;
+      }));
+      if (!items.length) {
+        $("historyList").textContent =
+          "Your generated strategies will appear here.";
+      }
+      $("history").classList.remove("hidden");
     }
     function showChat() {
-      $('access').classList.add('hidden');
-      $('accessError').classList.add('hidden');
-      $('chat').classList.remove('hidden');
-      $('question').focus();
-      loadHistory().catch(error => {
-        if (error.status === 401) lockWorkspace('Your access has expired. Enter the access code again.');
-        else $('status').textContent = error.message;
-      });
+      $("access").classList.add("hidden");
+      $("chat").classList.remove("hidden");
+      $("googleTrendsImport").classList.remove("hidden");
+      $("question").focus();
     }
-    async function verifyAccessCode(value) {
-      const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json', 'x-strategy-access-code': value }, body: JSON.stringify({ action: 'history' }) });
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok) {
-        const error = new Error(data.error || 'Unable to verify access');
-        error.status = r.status;
-        throw error;
-      }
+    function lockWorkspace(message = "") {
+      accessCode = "";
+      sessionStorage.removeItem("tippos-us-strategy-code");
+      $("chat").classList.add("hidden");
+      $("googleTrendsImport").classList.add("hidden");
+      $("history").classList.add("hidden");
+      $("result").classList.add("hidden");
+      $("access").classList.remove("hidden");
+      $("code").value = "";
+      $("status").textContent = "";
+      $("accessError").textContent = message;
+      $("accessError").classList.toggle("hidden", !message);
     }
-    if (accessCode) verifyAccessCode(accessCode).then(showChat).catch(() => lockWorkspace());
-    $('unlock').onclick = async () => {
-      const value = $('code').value.trim();
-      if (!value) {
-        $('accessError').textContent = 'Enter the access code.';
-        $('accessError').classList.remove('hidden');
-        return;
-      }
-      $('unlock').disabled = true;
-      $('accessError').classList.add('hidden');
+    async function unlockWithCode(value) {
+      $("unlock").disabled = true;
+      $("accessError").classList.add("hidden");
       try {
-        await verifyAccessCode(value);
+        await loadHistory(value);
         accessCode = value;
-        sessionStorage.setItem('tippos-us-strategy-code', value);
+        sessionStorage.setItem("tippos-us-strategy-code", value);
         showChat();
       } catch (error) {
-        lockWorkspace(error.status === 401 ? 'That access code was not accepted.' : (error.message || 'Unable to verify access.'));
+        lockWorkspace(
+          error.status === 401
+            ? "That access code was not accepted."
+            : "Access could not be verified right now.",
+        );
       } finally {
-        $('unlock').disabled = false;
+        $("unlock").disabled = false;
+      }
+    }
+    if (accessCode) {
+      const savedCode = accessCode;
+      accessCode = "";
+      unlockWithCode(savedCode);
+    }
+    $("unlock").onclick = async () => {
+      const value = $("code").value.trim();
+      if (!value) {
+        $("accessError").textContent = "Enter the access code.";
+        $("accessError").classList.remove("hidden");
+        return;
+      }
+      await unlockWithCode(value);
+    };
+    document.querySelectorAll(".example").forEach((button) =>
+      button.onclick = () => {
+        $("question").value = button.dataset.question;
+        $("question").focus();
+      }
+    );
+    $("refreshHistory").onclick = () =>
+      loadHistory().catch((error) => {
+        if (error.status === 401) {
+          lockWorkspace("That access code was not accepted.");
+        } else {
+          $("status").textContent = error.message;
+        }
+      });
+    $("importTrends").onclick = async () => {
+      const file = $("trendsFile").files[0];
+      const queryText = $("trendsQuery").value.trim();
+      if (!queryText || !file) {
+        $("trendsStatus").textContent = "Add the Google Trends query and its exported CSV first.";
+        return;
+      }
+      $("importTrends").disabled = true;
+      $("trendsStatus").textContent = "Reading the Google Trends export…";
+      try {
+        const r = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-strategy-access-code": accessCode,
+          },
+          body: JSON.stringify({
+            action: "import_google_trends",
+            query_text: queryText,
+            country_code: "US",
+            dataset_kind: $("trendsDataset").value,
+            period_start: $("trendsPeriodStart").value || null,
+            period_end: $("trendsPeriodEnd").value || null,
+            csv: await file.text(),
+          }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          const error = new Error(data.error || "Unable to import Google Trends CSV");
+          error.status = r.status;
+          throw error;
+        }
+        const loaded = data.google_trends_import?.loaded;
+        $("trendsStatus").textContent =
+          `Imported ${loaded || "the"} Google Trends signal${loaded === 1 ? "" : "s"}. Your next strategy answer can use it.`;
+        $("trendsFile").value = "";
+      } catch (error) {
+        if (error.status === 401) {
+          lockWorkspace("That access code was not accepted.");
+        } else if (error.message === "invalid_google_trends_csv") {
+          $("trendsStatus").textContent = "That file is not a supported Google Trends CSV for the selected type. Export a single US chart and try again.";
+        } else {
+          $("trendsStatus").textContent = error.message || "Unable to import Google Trends CSV.";
+        }
+      } finally {
+        $("importTrends").disabled = false;
       }
     };
-    document.querySelectorAll('.example').forEach(button => button.onclick = () => { $('question').value = button.dataset.question; $('question').focus(); });
-    $('refreshHistory').onclick = () => loadHistory().catch(error => { $('status').textContent = error.message; });
-    $('ask').onclick = async () => { const question = $('question').value.trim(); if (!question) { $('status').textContent = 'Write a question first.'; return; } $('ask').disabled = true; $('status').textContent = 'Analyzing market evidence and search signals…'; try { const r = await fetch(endpoint, { method: 'POST', headers: { 'content-type': 'application/json', 'x-strategy-access-code': accessCode }, body: JSON.stringify({ question }) }); const data = await r.json(); if (!r.ok) { if (r.status === 401) { sessionStorage.removeItem('tippos-us-strategy-code'); accessCode = ''; $('chat').classList.add('hidden'); $('access').classList.remove('hidden'); $('accessError').textContent = 'That access code was not accepted.'; $('accessError').classList.remove('hidden'); } throw new Error(data.error || 'Request failed'); } showStrategy(data); $('status').textContent = ''; await loadHistory(); } catch (error) { $('status').textContent = error.message || 'Unable to get strategy.'; } finally { $('ask').disabled = false; } };
-  </script>
-</body>
+    $("ask").onclick = async () => {
+      const question = $("question").value.trim();
+      if (!question) {
+        $("status").textContent = "Write a question first.";
+        return;
+      }
+      $("ask").disabled = true;
+      $("status").textContent = "Analyzing market evidence and search signals…";
+      try {
+        const r = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-strategy-access-code": accessCode,
+          },
+          body: JSON.stringify({ question }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          const error = new Error(data.error || "Request failed");
+          error.status = r.status;
+          throw error;
+        }
+        showStrategy(data);
+        $("status").textContent = "";
+        await loadHistory();
+      } catch (error) {
+        if (error.status === 401) {
+          lockWorkspace("That access code was not accepted.");
+        } else {
+          $("status").textContent = error.message || "Unable to get strategy.";
+        }
+      } finally {
+        $("ask").disabled = false;
+      }
+    };
+    </script>
+  </body>
 </html>
-

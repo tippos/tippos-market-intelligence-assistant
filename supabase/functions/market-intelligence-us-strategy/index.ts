@@ -11,9 +11,15 @@ import {
   strategyAllowedOrigin,
   strategyClientHash,
 } from "../_shared/strategy_access.ts";
+import {
+  isGoogleTrendsDatasetKind,
+  parseGoogleTrendsCsv,
+  sha256Hex,
+} from "../_shared/google_trends.ts";
 
 const DEFAULT_MODEL = "gpt-5.6-terra";
 const MAX_QUESTION_LENGTH = 1_000;
+const MAX_GOOGLE_TRENDS_CSV_CHARACTERS = 500_000;
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": strategyAllowedOrigin(),
   "Access-Control-Allow-Headers":
@@ -202,6 +208,91 @@ function growthSnapshotContext(snapshot: GrowthSnapshot | null): string {
   return JSON.stringify(snapshot, null, 2);
 }
 
+function optionalIsoDate(value: unknown): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new Error("invalid_google_trends_period");
+  }
+  return value;
+}
+
+async function importGoogleTrendsExport(
+  client: ReturnType<typeof adminClient>,
+  body: Record<string, unknown>,
+): Promise<Response> {
+  const queryText = typeof body.query_text === "string"
+    ? body.query_text.trim()
+    : "";
+  const datasetKind = body.dataset_kind;
+  const csv = typeof body.csv === "string" ? body.csv : "";
+  const countryCode = typeof body.country_code === "string"
+    ? body.country_code.trim().toUpperCase()
+    : "US";
+  const category = typeof body.category === "string" ? body.category.trim() : "";
+  const searchType = typeof body.search_type === "string"
+    ? body.search_type.trim()
+    : "";
+  if (
+    !queryText || queryText.length > 500 || countryCode !== "US" ||
+    !isGoogleTrendsDatasetKind(datasetKind) || !csv ||
+    csv.length > MAX_GOOGLE_TRENDS_CSV_CHARACTERS
+  ) {
+    return response({ error: "invalid_google_trends_import" }, 400);
+  }
+
+  try {
+    const parsed = parseGoogleTrendsCsv(datasetKind, csv);
+    const requestedStart = optionalIsoDate(body.period_start);
+    const requestedEnd = optionalIsoDate(body.period_end);
+    const observedDates = (parsed.interest_over_time ?? []).map((item) =>
+      item.observed_on
+    ).sort();
+    const periodStart = observedDates[0] ?? requestedStart;
+    const periodEnd = observedDates.at(-1) ?? requestedEnd;
+    if (periodStart && periodEnd && periodStart > periodEnd) {
+      return response({ error: "invalid_google_trends_period" }, 400);
+    }
+    const payload = {
+      ...parsed,
+      interest_over_time: parsed.interest_over_time ?? [],
+      geo_metrics: parsed.geo_metrics ?? [],
+      related_terms: parsed.related_terms ?? [],
+    };
+    const loaded = payload.interest_over_time.length + payload.geo_metrics.length +
+      payload.related_terms.length;
+    const { data, error } = await client.rpc("mi_import_google_trends_export", {
+      p_query_text: queryText,
+      p_country_code: countryCode,
+      p_category: category || "All categories",
+      p_search_type: searchType || "Web Search",
+      p_period_start: periodStart,
+      p_period_end: periodEnd,
+      p_dataset_kind: datasetKind,
+      p_file_checksum: await sha256Hex(csv),
+      p_metadata: {
+        imported_via: "private_strategy_assistant",
+        parser: "google_trends_manual_csv_v1",
+        parsed_row_count: loaded,
+      },
+      p_payload: payload,
+    });
+    if (error) {
+      console.error(
+        "[market-intelligence-us-strategy] google_trends_import_failed",
+        error.message,
+      );
+      return response({ error: "google_trends_import_failed" }, 400);
+    }
+    return response({ ok: true, google_trends_import: data });
+  } catch (error) {
+    console.warn(
+      "[market-intelligence-us-strategy] invalid_google_trends_csv",
+      error instanceof Error ? error.message : "unknown",
+    );
+    return response({ error: "invalid_google_trends_csv" }, 400);
+  }
+}
+
 async function askOpenAI(
   apiKey: string,
   question: string,
@@ -216,6 +307,7 @@ async function askOpenAI(
     "Answer in plain English for a tippos employee making marketing decisions. Use only the supplied evidence for factual claims.",
     "Do not invent market size, search volume, adoption, customer demand, competitors, pricing, or legal conclusions.",
     "Autocomplete suggestions are qualitative evidence that a query formulation exists. Manual SERP snapshots are time/device/context-specific observations. Never treat either as search volume, universal popularity, universal rank, geography, or growth data.",
+    "Google Trends manual exports provide a relative 0-100 interest index and related terms only within the exact exported query, geography, period, category, and search type. They are not search volume, market size, or comparable across unrelated exports.",
     "Distinguish evidence-backed observations from hypotheses. If evidence is insufficient, say so directly.",
     "Structure the response as: Direct answer; Why; Recommended next action; What to validate next; Evidence used.",
     "In Evidence used, cite public evidence keys in square brackets and identify autocomplete observations by their source_key.",
@@ -249,6 +341,7 @@ async function askOpenAIWithHistory(
   question: string,
   evidence: Evidence[],
   searchSignals: SearchSignal[],
+  googleTrendsEvidence: Evidence[],
   strategyHistory: SavedStrategy[],
   growthSnapshot: GrowthSnapshot | null,
 ): Promise<OpenAIResponse> {
@@ -262,6 +355,7 @@ async function askOpenAIWithHistory(
     "Answer in plain English for a tippos employee making marketing decisions. Use only provided evidence for factual claims.",
     "Do not invent market size, search volume, adoption, customer demand, competitors, pricing, or legal conclusions.",
     "Autocomplete suggestions are qualitative evidence that a query formulation exists. Manual SERP snapshots are time/device/context-specific observations. Never treat either as search volume, universal popularity, universal rank, geography, or growth data.",
+    "Google Trends manual exports provide a relative 0-100 interest index and related terms only within the exact exported query, geography, period, category, and search type. They are not search volume, market size, or comparable across unrelated exports.",
     "Distinguish evidence-backed observations from hypotheses. If evidence is insufficient, say so directly.",
     "The campaign snapshot contains aggregate Search Console, consented first-party events, and authoritative pilot signup totals. Never infer personal behavior or identify an individual from it.",
     "When campaign data is available, compare reach, engagement, pilot intent, and completed signup signals before proposing a change. Prefer one measurable modification at a time.",
@@ -279,6 +373,8 @@ async function askOpenAIWithHistory(
     evidenceContext(evidence),
     "Qualitative search and SERP signals (geography may be unknown):",
     searchSignalContext(searchSignals),
+    "Google Trends manual relative-interest signals (only when imported):",
+    evidenceContext(googleTrendsEvidence),
   ].join("\n\n");
 
   const result = await fetch("https://api.openai.com/v1/responses", {
@@ -325,6 +421,9 @@ Deno.serve(async (req) => {
       if (error) throw new Error("strategy_history_read_failed");
       return response({ ok: true, strategies: data ?? [] });
     }
+    if (body.action === "import_google_trends") {
+      return await importGoogleTrendsExport(adminClient(), body);
+    }
     const apiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
     if (!apiKey) {
       return response({ error: "openai_credentials_missing" }, 503);
@@ -339,15 +438,22 @@ Deno.serve(async (req) => {
     const [
       { data, error },
       { data: searchData, error: searchError },
+      { data: googleTrendsData, error: googleTrendsError },
       { data: strategyData },
       { data: growthData, error: growthError },
     ] = await Promise.all([
       client.rpc("mi_get_us_strategy_evidence"),
       client.rpc("mi_get_autocomplete_search_signals"),
+      client.rpc("mi_get_us_strategy_google_trends_evidence"),
       client.rpc("mi_list_strategies", { p_limit: 30 }),
       client.rpc("mi_get_growth_campaign_snapshot", {}),
     ]);
     if (error || searchError) throw new Error("evidence_read_failed");
+    if (googleTrendsError) {
+      console.warn(
+        "[market-intelligence-us-strategy] google_trends_evidence_unavailable",
+      );
+    }
     if (growthError) {
       console.warn(
         "[market-intelligence-us-strategy] growth_snapshot_unavailable",
@@ -357,12 +463,16 @@ Deno.serve(async (req) => {
       ? strategyData as SavedStrategy[]
       : [];
     const evidence = (data ?? []) as Evidence[];
+    const googleTrendsEvidence = googleTrendsError
+      ? []
+      : (googleTrendsData ?? []) as Evidence[];
+    const combinedEvidence = [...evidence, ...googleTrendsEvidence];
     const searchSignals = (searchData ?? []) as SearchSignal[];
     const growthSnapshot =
       !growthError && growthData && typeof growthData === "object"
         ? growthData as GrowthSnapshot
         : null;
-    if (evidence.length === 0) {
+    if (combinedEvidence.length === 0) {
       return response({ error: "us_evidence_unavailable" }, 503);
     }
     const model = Deno.env.get("OPENAI_US_STRATEGY_MODEL") || DEFAULT_MODEL;
@@ -372,13 +482,14 @@ Deno.serve(async (req) => {
         question,
         evidence,
         searchSignals,
+        googleTrendsEvidence,
         strategyHistory,
         growthSnapshot,
       ),
     );
     if (!answer) throw new Error("openai_empty_response");
     const evidenceSnapshot = [
-      ...evidence.map((
+      ...combinedEvidence.map((
         {
           evidence_key,
           publisher,
@@ -432,7 +543,7 @@ Deno.serve(async (req) => {
       ok: true,
       id: strategyId,
       scope:
-        "US strategy with qualitative search signals and aggregate campaign performance",
+        "US strategy with cited market evidence, imported Google Trends signals, qualitative search signals, and aggregate campaign performance",
       question,
       answer,
       evidence: evidenceSnapshot,
@@ -440,6 +551,7 @@ Deno.serve(async (req) => {
       growth_campaign: growthSnapshot,
       created_at: new Date().toISOString(),
       limitations: [
+        "Google Trends values are relative 0-100 indexes and related-term signals from the exact manually imported export—not search volume, market size, or comparable across unrelated exports.",
         "Autocomplete suggestions and manual SERP captures are qualitative, context-specific signals—not search volume, universal rank, geography, or growth data.",
         "Search Console and consented analytics can be incomplete or delayed; total market keyword volume and competitor traffic are not available.",
         "Recommendations are evidence-backed hypotheses until an experiment validates them.",
