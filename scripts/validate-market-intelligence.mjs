@@ -63,6 +63,7 @@ const reconciledAdditionalVersions = [
   "20260724191056",
   "20260724210000",
   "20260725200649",
+  "20260809014500",
 ];
 const obsoleteRetimestampedVersions = [
   "20260723004822",
@@ -142,6 +143,7 @@ const convergence = readMigration("20260724190745");
 const referenceEvidence = readMigration("20260724191056");
 const strategyGuard = readMigration("20260724210000");
 const searchMetricActivationGuard = readMigration("20260725200649");
+const googleTrendsManualImports = readMigration("20260809014500");
 const strategy = readFileSync(
   "supabase/functions/market-intelligence-us-strategy/index.ts",
   "utf8",
@@ -470,6 +472,18 @@ assert(
 assert(
   googleAds.includes("'google_ads_keyword_planner'"),
   "Google Ads source registration is missing",
+);
+assert(
+  googleTrendsManualImports.includes("'relative_interest_index_0_100'") &&
+    googleTrendsManualImports.includes("'search_counts', false") &&
+    googleTrendsManualImports.includes("'manual_export_required', true"),
+  "Google Trends imports must remain relative manual evidence, never search-volume estimates",
+);
+assert(
+  googleTrendsManualImports.includes("trends_imports_source_id_idx") &&
+    googleTrendsManualImports.includes("trends_imports_query_country_period_idx") &&
+    googleTrendsManualImports.includes("relative_interest BETWEEN 0 AND 100"),
+  "Google Trends tables must preserve foreign-key lookup indexes and bounded relative interest",
 );
 assert(
   googleAds.includes("'third_party'"),
