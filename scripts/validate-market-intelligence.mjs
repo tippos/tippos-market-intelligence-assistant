@@ -64,7 +64,7 @@ const reconciledAdditionalVersions = [
   "20260724210000",
   "20260725200649",
   "20260808224532",
-  "20260809114932",
+  "20260809162131",
 ];
 const obsoleteRetimestampedVersions = [
   "20260723004822",
@@ -145,7 +145,7 @@ const referenceEvidence = readMigration("20260724191056");
 const strategyGuard = readMigration("20260724210000");
 const searchMetricActivationGuard = readMigration("20260725200649");
 const googleTrendsManualImports = readMigration("20260808224532");
-const googleTrendsStrategySignals = readMigration("20260809114932");
+const googleTrendsStrategySignals = readMigration("20260809162131");
 const strategy = readFileSync(
   "supabase/functions/market-intelligence-us-strategy/index.ts",
   "utf8",
