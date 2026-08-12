@@ -20,6 +20,26 @@ import {
 
 const DEFAULT_MODEL = "gpt-5.6-terra";
 const MAX_QUESTION_LENGTH = 1_000;
+const MAX_SUGGESTED_QUESTION_LENGTH = 360;
+const PRELAUNCH_CONTEXT = [
+  "Product stage: tippos is pre-launch and intentionally not publicly discoverable.",
+  "The tippos site is hidden from public indexing. Missing branded Google Search results, organic traffic, AI-chat or AI-answer mentions, and citations are expected; they are not a weakness, a market signal, or a current opportunity.",
+  "Do not recommend branded SEO, reputation building, AI-answer optimization, or branded visibility comparisons as a current priority. Focus on non-branded category demand, consumer moments, positioning, and launch-ready experiments. Treat branded visibility measurement as a post-launch baseline.",
+  "Always write the tippos brand in lowercase, including at the beginning of a sentence.",
+].join(" ");
+const SUGGESTION_TOPICS = new Set([
+  "marketing_priorities",
+  "search_opportunities",
+  "competitor_visibility",
+  "campaign_test",
+]);
+const SUGGESTION_ANGLES = [
+  "a consumer moment with high repeat potential",
+  "a Google Trends geographic or time-pattern signal",
+  "a non-branded search-intent or messaging hypothesis",
+  "a positioning contrast that does not depend on tippos's branded visibility",
+  "one small launch-ready experiment and its success signal",
+];
 const MAX_GOOGLE_TRENDS_CSV_CHARACTERS = 500_000;
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": strategyAllowedOrigin(),
@@ -443,6 +463,10 @@ async function askOpenAI(
   return data;
 }
 
+function normalizeTipposBrand(value: string): string {
+  return value.replace(/\btippos\b/gi, "tippos");
+}
+
 async function askOpenAIWithHistory(
   apiKey: string,
   question: string,
@@ -455,6 +479,7 @@ async function askOpenAIWithHistory(
   const prompt = [
     "You are the private marketing-intelligence and growth-strategy assistant for tippos employees.",
     "tippos is a cashless tipping product used by people who give tips.",
+    PRELAUNCH_CONTEXT,
     "tippos serves tip givers. Hotels, restaurants, salons, venues, and workers are tip contexts or possible distribution channels, not tippos customers or default partners.",
     "Optimize recommendations for marketing strategy and consumer adoption: search visibility, content, positioning, the tip giver's value, the first consumer segment, high-frequency tipping moments, acquisition loops, referral, and product flow.",
     "Never recommend finding a hotel, restaurant, salon, venue, or employer partner as the primary next step unless the founder explicitly asks about a distribution partnership. If you mention one, label it clearly as an optional distribution channel rather than the customer.",
@@ -504,6 +529,53 @@ async function askOpenAIWithHistory(
   return data;
 }
 
+function normalizeSuggestedQuestion(value: string): string {
+  const question = normalizeTipposBrand(value)
+    .trim()
+    .replace(/^(suggested\s+)?question\s*:\s*/i, "")
+    .replace(/^[\"'“”]+|[\"'“”]+$/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/[.!]+$/, "")
+    .trim();
+  return question ? `${question}?` : "";
+}
+
+async function askOpenAIForSuggestedQuestion(
+  apiKey: string,
+  topic: string,
+): Promise<string> {
+  const angle = SUGGESTION_ANGLES[
+    crypto.getRandomValues(new Uint32Array(1))[0] % SUGGESTION_ANGLES.length
+  ];
+  const prompt = [
+    "Write one fresh, concise question for a tippos employee to paste into a marketing-intelligence assistant.",
+    PRELAUNCH_CONTEXT,
+    `Selected button area: ${topic.replaceAll("_", " ")}.`,
+    `Use this fresh angle for this request: ${angle}.`,
+    "The question must lead to a concrete marketing decision and may combine relevant pre-launch themes when useful.",
+    "For competitor visibility, investigate category positioning or non-branded demand; never frame tippos's absent branded Search or AI visibility as a weakness.",
+    "Do not invent facts, search volume, traffic, competitors, or performance. Do not mention a metric unless the employee's later strategy request supplies evidence for it.",
+    "Return only the question, without a label, quotation marks, bullets, or explanation. Always write tippos in lowercase.",
+  ].join("\n\n");
+  const result = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: Deno.env.get("OPENAI_US_STRATEGY_MODEL") || DEFAULT_MODEL,
+      reasoning: { effort: "low" },
+      max_output_tokens: 180,
+      input: prompt,
+    }),
+    signal: AbortSignal.timeout(30_000),
+  });
+  const data = await result.json().catch(() => ({})) as OpenAIResponse;
+  if (!result.ok) throw new Error(`openai_${result.status}`);
+  return normalizeSuggestedQuestion(extractOutputText(data));
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -534,6 +606,17 @@ Deno.serve(async (req) => {
     const apiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
     if (!apiKey) {
       return response({ error: "openai_credentials_missing" }, 503);
+    }
+    if (body.action === "suggest_question") {
+      const topic = typeof body.topic === "string" ? body.topic : "";
+      if (!SUGGESTION_TOPICS.has(topic)) {
+        return response({ error: "invalid_suggestion_topic" }, 400);
+      }
+      const suggestion = await askOpenAIForSuggestedQuestion(apiKey, topic);
+      if (!suggestion || suggestion.length > MAX_SUGGESTED_QUESTION_LENGTH) {
+        throw new Error("openai_invalid_suggested_question");
+      }
+      return response({ ok: true, question: suggestion });
     }
     const question = typeof body.question === "string"
       ? body.question.trim()
@@ -583,7 +666,7 @@ Deno.serve(async (req) => {
       return response({ error: "us_evidence_unavailable" }, 503);
     }
     const model = Deno.env.get("OPENAI_US_STRATEGY_MODEL") || DEFAULT_MODEL;
-    const answer = extractOutputText(
+    const answer = normalizeTipposBrand(extractOutputText(
       await askOpenAIWithHistory(
         apiKey,
         question,
@@ -593,7 +676,7 @@ Deno.serve(async (req) => {
         strategyHistory,
         growthSnapshot,
       ),
-    );
+    ));
     if (!answer) throw new Error("openai_empty_response");
     const evidenceSnapshot = [
       ...combinedEvidence.map((

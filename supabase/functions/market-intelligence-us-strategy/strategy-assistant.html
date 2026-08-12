@@ -248,7 +248,7 @@
       <section class="card"
         id="access"><label for="code">Employee access code</label><input id="code" type="password" autocomplete="current-password" placeholder="Enter your access code"><p class="hint">For authorized tippos team members. Stored only for this browser session.</p><button id="unlock">Open workspace</button><p id="accessError" class="error hidden"></p></section>
       <section class="card hidden"
-        id="chat"><label for="question">What should tippos investigate?</label><textarea id="question" placeholder="Example: Which search opportunities should the tippos marketing team prioritize next?"></textarea><div class="examples"><button class="example" data-question="What should the tippos marketing team prioritize next?">Marketing priorities</button><button class="example" data-question="Which search opportunities should tippos pursue first?">Search opportunities</button><button class="example" data-question="Where are competitors winning search and AI visibility?">Competitor visibility</button><button class="example" data-question="What marketing campaign should tippos test next?">Campaign test</button></div><button id="ask">Build marketing strategy</button><p id="status" class="hint"></p></section>
+        id="chat"><label for="question">What should tippos investigate?</label><textarea id="question" placeholder="Choose a focus below for an AI-generated question, or write your own."></textarea><div class="examples"><button class="example" data-topic="marketing_priorities">Marketing priorities</button><button class="example" data-topic="search_opportunities">Search opportunities</button><button class="example" data-topic="competitor_visibility">Competitor visibility</button><button class="example" data-topic="campaign_test">Campaign test</button></div><button id="ask">Build marketing strategy</button><p id="status" class="hint"></p></section>
       <section class="card hidden" id="result">
         <div id="answer"></div>
         <div
@@ -439,12 +439,41 @@
       }
       await unlockWithCode(value);
     };
-    document.querySelectorAll(".example").forEach((button) =>
-      button.onclick = () => {
-        $("question").value = button.dataset.question;
+    async function suggestQuestion(button) {
+      const topic = button.dataset.topic;
+      button.disabled = true;
+      $("status").textContent = "Finding a fresh question...";
+      try {
+        const r = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "x-strategy-access-code": accessCode,
+          },
+          body: JSON.stringify({ action: "suggest_question", topic }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          const error = new Error(data.error || "Unable to suggest a question");
+          error.status = r.status;
+          throw error;
+        }
+        $("question").value = data.question;
         $("question").focus();
+        $("status").textContent = "";
+      } catch (error) {
+        if (error.status === 401) {
+          lockWorkspace("That access code was not accepted.");
+        } else {
+          $("status").textContent = error.message || "Unable to suggest a question.";
+        }
+      } finally {
+        button.disabled = false;
       }
-    );
+    }
+    document.querySelectorAll(".example").forEach((button) => {
+      button.onclick = () => suggestQuestion(button);
+    });
     $("refreshHistory").onclick = () =>
       loadHistory().catch((error) => {
         if (error.status === 401) {
