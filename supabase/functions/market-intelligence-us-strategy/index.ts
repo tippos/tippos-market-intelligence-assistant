@@ -13,6 +13,7 @@ import {
 } from "../_shared/strategy_access.ts";
 import {
   isGoogleTrendsDatasetKind,
+  parseGoogleTrendsComparisonCsv,
   parseGoogleTrendsCsv,
   sha256Hex,
 } from "../_shared/google_trends.ts";
@@ -216,7 +217,7 @@ function optionalIsoDate(value: unknown): string | null {
   return value;
 }
 
-async function importGoogleTrendsExport(
+async function importGoogleTrendsLegacyExport(
   client: ReturnType<typeof adminClient>,
   body: Record<string, unknown>,
 ): Promise<Response> {
@@ -284,6 +285,112 @@ async function importGoogleTrendsExport(
       return response({ error: "google_trends_import_failed" }, 400);
     }
     return response({ ok: true, google_trends_import: data });
+  } catch (error) {
+    console.warn(
+      "[market-intelligence-us-strategy] invalid_google_trends_csv",
+      error instanceof Error ? error.message : "unknown",
+    );
+    return response({ error: "invalid_google_trends_csv" }, 400);
+  }
+}
+
+async function importGoogleTrendsComparisonExport(
+  client: ReturnType<typeof adminClient>,
+  body: Record<string, unknown>,
+): Promise<Response> {
+  const queryText = typeof body.query_text === "string"
+    ? body.query_text.trim()
+    : "";
+  const datasetKind = body.dataset_kind;
+  const csv = typeof body.csv === "string" ? body.csv : "";
+  const countryCode = typeof body.country_code === "string"
+    ? body.country_code.trim().toUpperCase()
+    : "US";
+  const category = typeof body.category === "string" ? body.category.trim() : "";
+  const searchType = typeof body.search_type === "string"
+    ? body.search_type.trim()
+    : "";
+  const isComparisonDataset = datasetKind === "interest_over_time" ||
+    datasetKind === "interest_by_subregion";
+  if (
+    queryText.length > 500 || countryCode !== "US" ||
+    !isGoogleTrendsDatasetKind(datasetKind) || !csv ||
+    (!isComparisonDataset && !queryText) ||
+    csv.length > MAX_GOOGLE_TRENDS_CSV_CHARACTERS
+  ) {
+    return response({ error: "invalid_google_trends_import" }, 400);
+  }
+  try {
+    const requestedStart = optionalIsoDate(body.period_start);
+    const requestedEnd = optionalIsoDate(body.period_end);
+    const parsedSeries = isComparisonDataset
+      ? parseGoogleTrendsComparisonCsv(datasetKind, csv)
+      : [{
+        ...parseGoogleTrendsCsv(datasetKind, csv),
+        query_text: queryText,
+        series_key: "single",
+        metric_interpretation:
+          "relative_interest_index_0_100_not_search_volume" as const,
+      }];
+    const sourceFileChecksum = await sha256Hex(csv);
+    const comparisonTerms = parsedSeries.map((series) => series.query_text);
+    const imports: unknown[] = [];
+    let loaded = 0;
+    for (const series of parsedSeries) {
+      const observedDates = (series.interest_over_time ?? []).map((item) =>
+        item.observed_on
+      ).sort();
+      const periodStart = observedDates[0] ?? requestedStart;
+      const periodEnd = observedDates.at(-1) ?? requestedEnd;
+      if (periodStart && periodEnd && periodStart > periodEnd) {
+        return response({ error: "invalid_google_trends_period" }, 400);
+      }
+      const payload = {
+        interest_over_time: series.interest_over_time ?? [],
+        geo_metrics: series.geo_metrics ?? [],
+        related_terms: series.related_terms ?? [],
+      };
+      const seriesLoaded = payload.interest_over_time.length +
+        payload.geo_metrics.length + payload.related_terms.length;
+      const { data, error } = await client.rpc("mi_import_google_trends_export", {
+        p_query_text: series.query_text,
+        p_country_code: countryCode,
+        p_category: category || "All categories",
+        p_search_type: searchType || "Web Search",
+        p_period_start: periodStart,
+        p_period_end: periodEnd,
+        p_dataset_kind: datasetKind,
+        p_file_checksum: sourceFileChecksum,
+        p_metadata: {
+          imported_via: "private_strategy_assistant",
+          parser: "google_trends_manual_csv_v2",
+          parsed_row_count: seriesLoaded,
+          series_key: series.series_key,
+          comparison_series_count: parsedSeries.length,
+          comparison_terms: comparisonTerms,
+          metric_interpretation: series.metric_interpretation,
+        },
+        p_payload: payload,
+      });
+      if (error) {
+        console.error(
+          "[market-intelligence-us-strategy] google_trends_import_failed",
+          error.message,
+        );
+        return response({ error: "google_trends_import_failed" }, 400);
+      }
+      imports.push(data);
+      loaded += seriesLoaded;
+    }
+    return response({
+      ok: true,
+      google_trends_import: {
+        loaded,
+        imported_series: imports.length,
+        comparison: imports.length > 1,
+        imports,
+      },
+    });
   } catch (error) {
     console.warn(
       "[market-intelligence-us-strategy] invalid_google_trends_csv",
@@ -422,7 +529,7 @@ Deno.serve(async (req) => {
       return response({ ok: true, strategies: data ?? [] });
     }
     if (body.action === "import_google_trends") {
-      return await importGoogleTrendsExport(adminClient(), body);
+      return await importGoogleTrendsComparisonExport(adminClient(), body);
     }
     const apiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
     if (!apiKey) {

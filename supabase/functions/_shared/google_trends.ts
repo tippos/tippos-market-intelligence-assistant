@@ -38,6 +38,14 @@ export type ParsedGoogleTrendsExport = {
   related_terms?: RelatedTerm[];
 };
 
+export type ParsedGoogleTrendsSeries = ParsedGoogleTrendsExport & {
+  query_text: string;
+  series_key: string;
+  metric_interpretation:
+    | "relative_interest_index_0_100_not_search_volume"
+    | "comparison_share_percentage_0_100_within_exact_export_not_search_volume";
+};
+
 function csvRows(input: string): string[][] {
   if (!input.trim() || input.length > 500_000) {
     throw new Error("invalid_google_trends_csv");
@@ -217,6 +225,112 @@ export function parseGoogleTrendsCsv(
     case "related_topics":
       return parseRelatedTerms(rows, "topics");
   }
+}
+
+function comparisonSeriesColumns(header: string[]): Array<{
+  index: number;
+  query_text: string;
+  series_key: string;
+}> {
+  const columns = header
+    .map((value, index) => ({ value: value.trim(), index }))
+    .filter(({ value, index }) => index > 0 && value.length > 0);
+  if (!columns.length) throw new Error("google_trends_csv_has_no_series");
+  return columns.map(({ value, index }) => {
+    const queryText = value.replace(/\s*:\s*\([^)]*\)\s*$/, "").trim();
+    if (!queryText || queryText.length > 500) {
+      throw new Error("invalid_google_trends_series_name");
+    }
+    return { index, query_text: queryText, series_key: `series-${index}` };
+  });
+}
+
+function parseComparisonValue(value: string, allowPercentage: boolean): {
+  relative_interest: number | null;
+  is_suppressed: boolean;
+} {
+  const normalized = value.trim();
+  if (/^<\s*1$/i.test(normalized)) {
+    return { relative_interest: null, is_suppressed: true };
+  }
+  const numericValue = allowPercentage && /^\d+(?:\.\d+)?%$/.test(normalized)
+    ? normalized.slice(0, -1)
+    : normalized;
+  if (!/^\d+(?:\.\d+)?$/.test(numericValue)) {
+    throw new Error("invalid_google_trends_relative_interest");
+  }
+  const relativeInterest = Number(numericValue);
+  if (relativeInterest < 0 || relativeInterest > 100) {
+    throw new Error("invalid_google_trends_relative_interest");
+  }
+  return { relative_interest: relativeInterest, is_suppressed: false };
+}
+
+function parseComparisonInterestOverTime(rows: string[][]): ParsedGoogleTrendsSeries[] {
+  const headerIndex = findHeader(rows, /^(day|week|month)$/i);
+  const parsed = comparisonSeriesColumns(rows[headerIndex]).map((column) => ({
+    ...column,
+    metric_interpretation: "relative_interest_index_0_100_not_search_volume" as const,
+    interest_over_time: [] as InterestPoint[],
+  }));
+  for (const row of rows.slice(headerIndex + 1)) {
+    const observedOn = parseObservedOn(row[0] ?? "");
+    if (!observedOn) continue;
+    parsed.forEach((series) => {
+      const rawValue = (row[series.index] ?? "").trim();
+      if (!rawValue) return;
+      series.interest_over_time.push({
+        observed_on: observedOn,
+        raw_value: rawValue,
+        ...parseComparisonValue(rawValue, false),
+      });
+    });
+  }
+  if (parsed.some((series) => !series.interest_over_time.length)) {
+    throw new Error("google_trends_csv_has_no_rows");
+  }
+  return parsed;
+}
+
+function parseComparisonGeoMetrics(rows: string[][]): ParsedGoogleTrendsSeries[] {
+  const headerIndex = findHeader(rows, /^(subregion|region|metro|city)$/i);
+  const columns = comparisonSeriesColumns(rows[headerIndex]);
+  const isComparison = columns.length > 1;
+  const parsed = columns.map((column) => ({
+    ...column,
+    metric_interpretation: isComparison
+      ? "comparison_share_percentage_0_100_within_exact_export_not_search_volume" as const
+      : "relative_interest_index_0_100_not_search_volume" as const,
+    geo_metrics: [] as GeoMetric[],
+  }));
+  for (const row of rows.slice(headerIndex + 1)) {
+    const regionName = (row[0] ?? "").trim();
+    if (!regionName) continue;
+    parsed.forEach((series) => {
+      const rawValue = (row[series.index] ?? "").trim();
+      if (!rawValue) return;
+      series.geo_metrics.push({
+        region_name: regionName,
+        region_code: null,
+        raw_value: rawValue,
+        ...parseComparisonValue(rawValue, isComparison),
+      });
+    });
+  }
+  if (parsed.some((series) => !series.geo_metrics.length)) {
+    throw new Error("google_trends_csv_has_no_rows");
+  }
+  return parsed;
+}
+
+export function parseGoogleTrendsComparisonCsv(
+  datasetKind: "interest_over_time" | "interest_by_subregion",
+  csv: string,
+): ParsedGoogleTrendsSeries[] {
+  const rows = csvRows(csv);
+  return datasetKind === "interest_over_time"
+    ? parseComparisonInterestOverTime(rows)
+    : parseComparisonGeoMetrics(rows);
 }
 
 export function isGoogleTrendsDatasetKind(

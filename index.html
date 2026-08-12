@@ -279,10 +279,10 @@
       <section class="card hidden" id="googleTrendsImport">
         <details class="trends-import">
           <summary>Import Google Trends CSV</summary>
-          <p class="hint">Export one US Google Trends chart as CSV, then choose its matching type below. tippos stores only its parsed relative-interest signals and file checksum&mdash;never the CSV itself. These 0&ndash;100 values are not search volume.</p>
+          <p class="hint">Export a US Google Trends chart or multi-term comparison as CSV, then choose its matching type below. tippos stores only parsed relative signals and the file checksum&mdash;never the CSV itself. A 0&ndash;100 interest index or comparison share is not search volume.</p>
           <div class="import-grid">
-            <label class="wide" for="trendsQuery">Google Trends query<input id="trendsQuery" maxlength="500" placeholder="Example: how much should i tip"></label>
-            <label for="trendsDataset">CSV type<select id="trendsDataset"><option value="interest_over_time">Interest over time (single query)</option><option value="interest_by_subregion">Interest by subregion</option><option value="related_queries">Related queries</option><option value="related_topics">Related topics</option></select></label>
+            <label class="wide" for="trendsQuery">Google Trends query (only needed for Related queries/topics)<input id="trendsQuery" maxlength="500" placeholder="Optional for time or subregion CSVs"></label>
+            <label for="trendsDataset">CSV type<select id="trendsDataset"><option value="interest_over_time">Interest over time (one query or comparison)</option><option value="interest_by_subregion">Interest by subregion (one query or comparison)</option><option value="related_queries">Related queries</option><option value="related_topics">Related topics</option></select></label>
             <label for="trendsFile">Google Trends CSV<input id="trendsFile" type="file" accept=".csv,text/csv"></label>
             <label for="trendsPeriodStart">Selected period starts (optional)<input id="trendsPeriodStart" type="date"></label>
             <label for="trendsPeriodEnd">Selected period ends (optional)<input id="trendsPeriodEnd" type="date"></label>
@@ -500,8 +500,12 @@
     $("importTrends").onclick = async () => {
       const file = $("trendsFile").files[0];
       const queryText = $("trendsQuery").value.trim();
-      if (!queryText || !file) {
-        $("trendsStatus").textContent = "Add the Google Trends query and its exported CSV first.";
+      const datasetKind = $("trendsDataset").value;
+      const requiresQuery = datasetKind === "related_queries" || datasetKind === "related_topics";
+      if (!file || (requiresQuery && !queryText)) {
+        $("trendsStatus").textContent = requiresQuery
+          ? "Add the Google Trends query and its exported CSV first."
+          : "Add the exported Google Trends CSV first.";
         return;
       }
       $("importTrends").disabled = true;
@@ -517,7 +521,7 @@
             action: "import_google_trends",
             query_text: queryText,
             country_code: "US",
-            dataset_kind: $("trendsDataset").value,
+            dataset_kind: datasetKind,
             period_start: $("trendsPeriodStart").value || null,
             period_end: $("trendsPeriodEnd").value || null,
             csv: await file.text(),
@@ -530,14 +534,16 @@
           throw error;
         }
         const loaded = data.google_trends_import?.loaded;
-        $("trendsStatus").textContent =
-          `Imported ${loaded || "the"} Google Trends signal${loaded === 1 ? "" : "s"}. Your next strategy answer can use it.`;
+        const importedSeries = data.google_trends_import?.imported_series || 1;
+        $("trendsStatus").textContent = data.google_trends_import?.comparison
+          ? `Imported ${loaded || "the"} Google Trends values across ${importedSeries} comparison terms. Your next strategy answer can use this relative signal, not search volume.`
+          : `Imported ${loaded || "the"} Google Trends signal${loaded === 1 ? "" : "s"}. Your next strategy answer can use it.`;
         $("trendsFile").value = "";
       } catch (error) {
         if (error.status === 401) {
           lockWorkspace("That access code was not accepted.");
         } else if (error.message === "invalid_google_trends_csv") {
-          $("trendsStatus").textContent = "That file is not a supported Google Trends CSV for the selected type. Export a single US chart and try again.";
+          $("trendsStatus").textContent = "That file is not a supported Google Trends CSV for the selected type. Export a one-term or comparison US chart and try again.";
         } else {
           $("trendsStatus").textContent = error.message || "Unable to import Google Trends CSV.";
         }
