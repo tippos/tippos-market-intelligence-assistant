@@ -160,6 +160,7 @@ const ingest = readFileSync(
   "supabase/functions/market-intelligence-ingest/index.ts",
   "utf8",
 );
+const publicStrategyTool = readFileSync("index.html", "utf8");
 const strategyTool = readFileSync(
   "tools/tippos-us-strategy-assistant.html",
   "utf8",
@@ -432,7 +433,7 @@ assert(
   "strategy access audit must not retain raw client addresses",
 );
 assert(
-  strategyTool === hostedStrategyTool,
+  publicStrategyTool === strategyTool && strategyTool === hostedStrategyTool,
   "strategy assistant copies have drifted",
 );
 assert(
@@ -512,6 +513,18 @@ assert(
     strategy.includes("Always write the tippos brand in lowercase") &&
     strategy.includes("normalizeTipposBrand"),
   "strategy assistant must treat hidden pre-launch branded visibility as expected and always use lowercase tippos",
+);
+assert(
+  strategy.includes("SUGGESTION_LENSES") &&
+    strategy.includes("Novelty requirement: make a materially different decision") &&
+    strategy.includes("invalid_suggestion_lens"),
+  "strategy assistant must require a distinct validated lens for each starter question",
+);
+assert(
+  strategyTool.includes("function nextSuggestionLens") &&
+    strategyTool.includes("suggestionLensStorageKey") &&
+    strategyTool.includes('lens_id: lensId'),
+  "strategy assistant starter buttons must rotate distinct suggestion lenses",
 );
 assert(
   strategyTool.includes('id="question"') &&

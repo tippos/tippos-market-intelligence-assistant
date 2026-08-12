@@ -27,19 +27,54 @@ const PRELAUNCH_CONTEXT = [
   "Do not recommend branded SEO, reputation building, AI-answer optimization, or branded visibility comparisons as a current priority. Focus on non-branded category demand, consumer moments, positioning, and launch-ready experiments. Treat branded visibility measurement as a post-launch baseline.",
   "Always write the tippos brand in lowercase, including at the beginning of a sentence.",
 ].join(" ");
-const SUGGESTION_TOPICS = new Set([
-  "marketing_priorities",
-  "search_opportunities",
-  "competitor_visibility",
-  "campaign_test",
-]);
-const SUGGESTION_ANGLES = [
-  "a consumer moment with high repeat potential",
-  "a Google Trends geographic or time-pattern signal",
-  "a non-branded search-intent or messaging hypothesis",
-  "a positioning contrast that does not depend on tippos's branded visibility",
-  "one small launch-ready experiment and its success signal",
-];
+type SuggestionLens = {
+  id: string;
+  direction: string;
+};
+
+const SUGGESTION_LENSES: Record<string, readonly SuggestionLens[]> = {
+  marketing_priorities: [
+    { id: "first-moment", direction: "choose the first high-frequency tipping moment to own at launch" },
+    { id: "audience-wedge", direction: "choose the narrowest consumer audience to serve first" },
+    { id: "value-proposition", direction: "choose the immediate giver benefit that deserves the lead message" },
+    { id: "activation-loop", direction: "choose the most plausible consumer activation or referral loop to validate" },
+    { id: "launch-sequence", direction: "choose the one pre-launch milestone that should precede broader acquisition" },
+    { id: "trust-friction", direction: "choose the clearest consumer uncertainty to remove before launch" },
+    { id: "category-story", direction: "choose the category story that makes cashless tipping feel useful today" },
+    { id: "measurement-plan", direction: "choose the first evidence-backed learning question for launch" },
+  ],
+  search_opportunities: [
+    { id: "plain-language", direction: "test the most natural non-branded wording for the consumer problem" },
+    { id: "moment-intent", direction: "test the search question that appears at the exact moment someone wants to leave a tip" },
+    { id: "cash-friction", direction: "test the wording for the no-cash problem without assuming a fixed tipping amount" },
+    { id: "decision-clarity", direction: "test the wording for people who need confidence about how a digital tip works" },
+    { id: "category-education", direction: "test the clearest explanatory query for a person unfamiliar with cashless tipping" },
+    { id: "comparison-frame", direction: "test a neutral comparison between cash, card, and phone-based tipping" },
+    { id: "search-journey", direction: "test the next question a consumer is likely to ask after discovering cashless tipping" },
+    { id: "content-format", direction: "choose the most useful search-led content format to validate before launch" },
+  ],
+  competitor_visibility: [
+    { id: "category-alternatives", direction: "map the consumer alternatives people use instead of a dedicated cashless tip flow" },
+    { id: "positioning-gap", direction: "find a category-positioning gap that an early consumer brand could own" },
+    { id: "consumer-tradeoff", direction: "identify the tradeoff a giver makes between convenience, clarity, and confidence" },
+    { id: "message-whitespace", direction: "identify a plain-language promise that category alternatives may underemphasize" },
+    { id: "journey-stage", direction: "compare alternatives at the decision moment rather than their branded visibility" },
+    { id: "proof-gap", direction: "identify the proof a first-time giver needs before choosing a new tipping method" },
+    { id: "mental-model", direction: "test the most helpful category label for explaining tippos to a new consumer" },
+    { id: "category-entry", direction: "choose a narrowly defined entry point where consumer alternatives feel weakest" },
+  ],
+  campaign_test: [
+    { id: "opening-promise", direction: "test one sharply different opening promise for the launch message" },
+    { id: "audience-message-fit", direction: "test which message best fits a defined early consumer audience" },
+    { id: "creative-format", direction: "test a campaign creative format that explains the moment in seconds" },
+    { id: "call-to-action", direction: "test a low-friction call to action before public launch" },
+    { id: "channel-hypothesis", direction: "test one channel hypothesis tied to a specific consumer moment" },
+    { id: "friction-removal", direction: "test a message that removes one reason people default to not tipping" },
+    { id: "follow-up-sequence", direction: "test the next message after a consumer first learns about cashless tipping" },
+    { id: "success-signal", direction: "choose the clearest behavioral signal that a launch message is working" },
+  ],
+};
+const SUGGESTION_TOPICS = new Set(Object.keys(SUGGESTION_LENSES));
 const MAX_GOOGLE_TRENDS_CSV_CHARACTERS = 500_000;
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": strategyAllowedOrigin(),
@@ -540,19 +575,25 @@ function normalizeSuggestedQuestion(value: string): string {
   return question ? `${question}?` : "";
 }
 
+function findSuggestionLens(
+  topic: string,
+  lensId: string,
+): SuggestionLens | null {
+  return SUGGESTION_LENSES[topic]?.find((lens) => lens.id === lensId) ?? null;
+}
+
 async function askOpenAIForSuggestedQuestion(
   apiKey: string,
   topic: string,
+  lens: SuggestionLens,
 ): Promise<string> {
-  const angle = SUGGESTION_ANGLES[
-    crypto.getRandomValues(new Uint32Array(1))[0] % SUGGESTION_ANGLES.length
-  ];
   const prompt = [
     "Write one fresh, concise question for a tippos employee to paste into a marketing-intelligence assistant.",
     PRELAUNCH_CONTEXT,
-    `Selected button area: ${topic.replaceAll("_", " ")}.`,
-    `Use this fresh angle for this request: ${angle}.`,
-    "The question must lead to a concrete marketing decision and may combine relevant pre-launch themes when useful.",
+    "Selected button area: " + topic.replaceAll("_", " ") + ".",
+    "Distinct strategic lens for this request: " + lens.direction + ".",
+    "Novelty requirement: make a materially different decision from the other lenses for this button. Do not merely rephrase a generic priority, visibility, search, or campaign question.",
+    "The question must lead to one concrete marketing decision and may combine relevant pre-launch themes when useful.",
     "For competitor visibility, investigate category positioning or non-branded demand; never frame tippos's absent branded Search or AI visibility as a weakness.",
     "Do not invent facts, search volume, traffic, competitors, or performance. Do not mention a metric unless the employee's later strategy request supplies evidence for it.",
     "Return only the question, without a label, quotation marks, bullets, or explanation. Always write tippos in lowercase.",
@@ -560,7 +601,7 @@ async function askOpenAIForSuggestedQuestion(
   const result = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: "Bearer " + apiKey,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -572,7 +613,7 @@ async function askOpenAIForSuggestedQuestion(
     signal: AbortSignal.timeout(30_000),
   });
   const data = await result.json().catch(() => ({})) as OpenAIResponse;
-  if (!result.ok) throw new Error(`openai_${result.status}`);
+  if (!result.ok) throw new Error("openai_" + result.status);
   return normalizeSuggestedQuestion(extractOutputText(data));
 }
 
@@ -609,14 +650,19 @@ Deno.serve(async (req) => {
     }
     if (body.action === "suggest_question") {
       const topic = typeof body.topic === "string" ? body.topic : "";
+      const lensId = typeof body.lens_id === "string" ? body.lens_id : "";
       if (!SUGGESTION_TOPICS.has(topic)) {
         return response({ error: "invalid_suggestion_topic" }, 400);
       }
-      const suggestion = await askOpenAIForSuggestedQuestion(apiKey, topic);
+      const lens = findSuggestionLens(topic, lensId);
+      if (!lens) {
+        return response({ error: "invalid_suggestion_lens" }, 400);
+      }
+      const suggestion = await askOpenAIForSuggestedQuestion(apiKey, topic, lens);
       if (!suggestion || suggestion.length > MAX_SUGGESTED_QUESTION_LENGTH) {
         throw new Error("openai_invalid_suggested_question");
       }
-      return response({ ok: true, question: suggestion });
+      return response({ ok: true, question: suggestion, lens_id: lens.id });
     }
     const question = typeof body.question === "string"
       ? body.question.trim()

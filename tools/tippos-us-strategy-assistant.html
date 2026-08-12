@@ -439,10 +439,62 @@
       }
       await unlockWithCode(value);
     };
+    const suggestionLensStorageKey = "tippos-us-strategy-question-lens-state";
+    const suggestionLensIds = {
+      marketing_priorities: ["first-moment", "audience-wedge", "value-proposition", "activation-loop", "launch-sequence", "trust-friction", "category-story", "measurement-plan"],
+      search_opportunities: ["plain-language", "moment-intent", "cash-friction", "decision-clarity", "category-education", "comparison-frame", "search-journey", "content-format"],
+      competitor_visibility: ["category-alternatives", "positioning-gap", "consumer-tradeoff", "message-whitespace", "journey-stage", "proof-gap", "mental-model", "category-entry"],
+      campaign_test: ["opening-promise", "audience-message-fit", "creative-format", "call-to-action", "channel-hypothesis", "friction-removal", "follow-up-sequence", "success-signal"],
+    };
+    function readSuggestionLensState() {
+      try {
+        const stored = JSON.parse(window.sessionStorage.getItem(suggestionLensStorageKey) || "{}");
+        return stored && typeof stored === "object" && !Array.isArray(stored) ? stored : {};
+      } catch {
+        return {};
+      }
+    }
+    function saveSuggestionLensState(state) {
+      try {
+        window.sessionStorage.setItem(suggestionLensStorageKey, JSON.stringify(state));
+      } catch {}
+    }
+    function shuffleSuggestionLenses(ids) {
+      const shuffled = [...ids];
+      for (let index = shuffled.length - 1; index > 0; index -= 1) {
+        const randomIndex = crypto.getRandomValues(new Uint32Array(1))[0] % (index + 1);
+        [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+      }
+      return shuffled;
+    }
+    function nextSuggestionLens(topic) {
+      const ids = suggestionLensIds[topic] || [];
+      if (!ids.length) return "";
+      const state = readSuggestionLensState();
+      const entry = state[topic] && typeof state[topic] === "object" ? state[topic] : {};
+      let remaining = Array.isArray(entry.remaining)
+        ? entry.remaining.filter((id) => ids.includes(id))
+        : [];
+      if (!remaining.length) {
+        remaining = shuffleSuggestionLenses(ids);
+        if (remaining.length > 1 && entry.last && remaining[remaining.length - 1] === entry.last) {
+          [remaining[remaining.length - 1], remaining[0]] = [remaining[0], remaining[remaining.length - 1]];
+        }
+      }
+      const lensId = remaining.pop() || "";
+      state[topic] = { remaining, last: lensId };
+      saveSuggestionLensState(state);
+      return lensId;
+    }
     async function suggestQuestion(button) {
       const topic = button.dataset.topic;
+      const lensId = nextSuggestionLens(topic);
+      if (!lensId) {
+        $("status").textContent = "Unable to choose a new direction.";
+        return;
+      }
       button.disabled = true;
-      $("status").textContent = "Finding a fresh question...";
+      $("status").textContent = "Finding a new direction...";
       try {
         const r = await fetch(endpoint, {
           method: "POST",
@@ -450,7 +502,7 @@
             "content-type": "application/json",
             "x-strategy-access-code": accessCode,
           },
-          body: JSON.stringify({ action: "suggest_question", topic }),
+          body: JSON.stringify({ action: "suggest_question", topic, lens_id: lensId }),
         });
         const data = await r.json().catch(() => ({}));
         if (!r.ok) {
