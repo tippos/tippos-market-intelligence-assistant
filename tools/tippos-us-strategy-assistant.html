@@ -237,33 +237,6 @@
       font-size: 12px;
       font-weight: 500;
     }
-    .trends-import summary {
-      color: #7C3AED;
-      cursor: pointer;
-      font-weight: 800;
-    }
-    .trends-import[open] summary {
-      margin-bottom: 14px;
-    }
-    .import-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-    }
-    .import-grid .wide {
-      grid-column: 1 / -1;
-    }
-    .import-grid label {
-      font-size: 13px;
-    }
-    .import-grid input,
-    .import-grid select {
-      margin-top: 6px;
-    }
-    @media (max-width: 560px) {
-      .import-grid { grid-template-columns: 1fr; }
-      .import-grid .wide { grid-column: auto; }
-    }
     </style>
   </head>
   <body>
@@ -276,27 +249,12 @@
         id="access"><label for="code">Employee access code</label><input id="code" type="password" autocomplete="current-password" placeholder="Enter your access code"><p class="hint">For authorized tippos team members. Stored only for this browser session.</p><button id="unlock">Open workspace</button><p id="accessError" class="error hidden"></p></section>
       <section class="card hidden"
         id="chat"><label for="question">What should tippos investigate?</label><textarea id="question" placeholder="Example: Which search opportunities should the tippos marketing team prioritize next?"></textarea><div class="examples"><button class="example" data-question="What should the tippos marketing team prioritize next?">Marketing priorities</button><button class="example" data-question="Which search opportunities should tippos pursue first?">Search opportunities</button><button class="example" data-question="Where are competitors winning search and AI visibility?">Competitor visibility</button><button class="example" data-question="What marketing campaign should tippos test next?">Campaign test</button></div><button id="ask">Build marketing strategy</button><p id="status" class="hint"></p></section>
-      <section class="card hidden" id="googleTrendsImport">
-        <details class="trends-import">
-          <summary>Import Google Trends CSV</summary>
-          <p class="hint">Export a US Google Trends chart or multi-term comparison as CSV, then choose its matching type below. tippos stores only parsed relative signals and the file checksum&mdash;never the CSV itself. A 0&ndash;100 interest index or comparison share is not search volume.</p>
-          <div class="import-grid">
-            <label class="wide" for="trendsQuery">Google Trends query (only needed for Related queries/topics)<input id="trendsQuery" maxlength="500" placeholder="Optional for time or subregion CSVs"></label>
-            <label for="trendsDataset">CSV type<select id="trendsDataset"><option value="interest_over_time">Interest over time (one query or comparison)</option><option value="interest_by_subregion">Interest by subregion (one query or comparison)</option><option value="related_queries">Related queries</option><option value="related_topics">Related topics</option></select></label>
-            <label for="trendsFile">Google Trends CSV<input id="trendsFile" type="file" accept=".csv,text/csv"></label>
-            <label for="trendsPeriodStart">Selected period starts (optional)<input id="trendsPeriodStart" type="date"></label>
-            <label for="trendsPeriodEnd">Selected period ends (optional)<input id="trendsPeriodEnd" type="date"></label>
-          </div>
-          <button id="importTrends" type="button">Import Google Trends signal</button>
-          <p id="trendsStatus" class="hint" aria-live="polite"></p>
-        </details>
-      </section>
       <section class="card hidden" id="result">
         <div id="answer"></div>
         <div
           class="sources"><strong>Evidence and signals used</strong><div id="sources"></div></div>
         <p
-          class="limit">Imported Google Trends CSVs are relative-interest signals, not market-wide keyword volume. Autocomplete and manual SERP observations are qualitative signals; competitor traffic is not connected.</p>
+          class="limit">Google Trends signals are relative-interest indicators, not market-wide keyword volume. Autocomplete and manual SERP observations are qualitative signals; competitor traffic is not connected.</p>
       </section>
       <section class="card hidden" id="history">
         <div
@@ -435,14 +393,12 @@
     function showChat() {
       $("access").classList.add("hidden");
       $("chat").classList.remove("hidden");
-      $("googleTrendsImport").classList.remove("hidden");
       $("question").focus();
     }
     function lockWorkspace(message = "") {
       accessCode = "";
       sessionStorage.removeItem("tippos-us-strategy-code");
       $("chat").classList.add("hidden");
-      $("googleTrendsImport").classList.add("hidden");
       $("history").classList.add("hidden");
       $("result").classList.add("hidden");
       $("access").classList.remove("hidden");
@@ -497,60 +453,6 @@
           $("status").textContent = error.message;
         }
       });
-    $("importTrends").onclick = async () => {
-      const file = $("trendsFile").files[0];
-      const queryText = $("trendsQuery").value.trim();
-      const datasetKind = $("trendsDataset").value;
-      const requiresQuery = datasetKind === "related_queries" || datasetKind === "related_topics";
-      if (!file || (requiresQuery && !queryText)) {
-        $("trendsStatus").textContent = requiresQuery
-          ? "Add the Google Trends query and its exported CSV first."
-          : "Add the exported Google Trends CSV first.";
-        return;
-      }
-      $("importTrends").disabled = true;
-      $("trendsStatus").textContent = "Reading the Google Trends export…";
-      try {
-        const r = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            "x-strategy-access-code": accessCode,
-          },
-          body: JSON.stringify({
-            action: "import_google_trends",
-            query_text: queryText,
-            country_code: "US",
-            dataset_kind: datasetKind,
-            period_start: $("trendsPeriodStart").value || null,
-            period_end: $("trendsPeriodEnd").value || null,
-            csv: await file.text(),
-          }),
-        });
-        const data = await r.json().catch(() => ({}));
-        if (!r.ok) {
-          const error = new Error(data.error || "Unable to import Google Trends CSV");
-          error.status = r.status;
-          throw error;
-        }
-        const loaded = data.google_trends_import?.loaded;
-        const importedSeries = data.google_trends_import?.imported_series || 1;
-        $("trendsStatus").textContent = data.google_trends_import?.comparison
-          ? `Imported ${loaded || "the"} Google Trends values across ${importedSeries} comparison terms. Your next strategy answer can use this relative signal, not search volume.`
-          : `Imported ${loaded || "the"} Google Trends signal${loaded === 1 ? "" : "s"}. Your next strategy answer can use it.`;
-        $("trendsFile").value = "";
-      } catch (error) {
-        if (error.status === 401) {
-          lockWorkspace("That access code was not accepted.");
-        } else if (error.message === "invalid_google_trends_csv") {
-          $("trendsStatus").textContent = "That file is not a supported Google Trends CSV for the selected type. Export a one-term or comparison US chart and try again.";
-        } else {
-          $("trendsStatus").textContent = error.message || "Unable to import Google Trends CSV.";
-        }
-      } finally {
-        $("importTrends").disabled = false;
-      }
-    };
     $("ask").onclick = async () => {
       const question = $("question").value.trim();
       if (!question) {

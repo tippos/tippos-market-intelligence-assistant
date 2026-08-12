@@ -508,10 +508,11 @@ assert(
   "strategy assistant must retrieve and describe Google Trends evidence safely",
 );
 assert(
-  strategyTool.includes('id="googleTrendsImport"') &&
-    strategyTool.includes('action: "import_google_trends"') &&
-    strategyTool.includes("not search volume"),
-  "private strategy page must offer a labeled Google Trends CSV import",
+  strategyTool.includes('id="question"') &&
+    !strategyTool.includes('id="googleTrendsImport"') &&
+    !strategyTool.includes('action: "import_google_trends"') &&
+    strategyTool.includes("Google Trends signals are relative-interest indicators"),
+  "private strategy page must use privately managed Google Trends evidence without a manual upload control",
 );
 assert(
   googleAds.includes("'third_party'"),
