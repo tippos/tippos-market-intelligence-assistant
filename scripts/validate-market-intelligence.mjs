@@ -508,6 +508,12 @@ assert(
   "strategy assistant must retrieve and describe Google Trends evidence safely",
 );
 assert(
+  strategy.includes("Product stage: tippos is pre-launch and intentionally not publicly discoverable.") &&
+    strategy.includes("Always write the tippos brand in lowercase") &&
+    strategy.includes("normalizeTipposBrand"),
+  "strategy assistant must treat hidden pre-launch branded visibility as expected and always use lowercase tippos",
+);
+assert(
   strategyTool.includes('id="question"') &&
     !strategyTool.includes('id="googleTrendsImport"') &&
     !strategyTool.includes('action: "import_google_trends"') &&
