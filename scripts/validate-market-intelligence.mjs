@@ -65,6 +65,7 @@ const reconciledAdditionalVersions = [
   "20260725200649",
   "20260808224532",
   "20260809162131",
+  "20260812141553",
 ];
 const obsoleteRetimestampedVersions = [
   "20260723004822",
@@ -146,6 +147,7 @@ const strategyGuard = readMigration("20260724210000");
 const searchMetricActivationGuard = readMigration("20260725200649");
 const googleTrendsManualImports = readMigration("20260808224532");
 const googleTrendsStrategySignals = readMigration("20260809162131");
+const googleTrendsComparisonSeries = readMigration("20260812141553");
 const strategy = readFileSync(
   "supabase/functions/market-intelligence-us-strategy/index.ts",
   "utf8",
@@ -491,6 +493,13 @@ assert(
     googleTrendsStrategySignals.includes("trends_imports_metadata_object") &&
     googleTrendsStrategySignals.includes("trends_geo_metrics_relative_interest_check"),
   "Google Trends imports must be available as private strategy evidence",
+);
+assert(
+  googleTrendsComparisonSeries.includes("series_key") &&
+    googleTrendsComparisonSeries.includes("file_checksum, series_key") &&
+    googleTrendsComparisonSeries.includes("comparison_share_percentage_0_100_within_exact_export_not_search_volume") &&
+    googleTrendsComparisonSeries.includes("market_intelligence_forbidden"),
+  "Google Trends comparison imports must store each term securely without treating signals as volume",
 );
 assert(
   strategy.includes("mi_get_us_strategy_google_trends_evidence") &&
