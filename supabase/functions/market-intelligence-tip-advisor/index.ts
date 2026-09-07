@@ -1,8 +1,7 @@
 // Supabase Edge Function: market-intelligence-tip-advisor
 //
-// Experimental classifier behind src/routes/tip-calculator.ai.tsx (an
-// unlaunched, unlinked route — reachable only by direct URL, noindexed via
-// NOINDEX_PATH_PREFIXES in src/lib/seo-config.ts).
+// Classifier behind the brand site's AI Tip Calculator
+// (src/routes/tip-calculator.ai.tsx), linked from SiteNav.
 //
 // Input:  { query: string }
 // Output: { slug: string, confidence: "high" | "low", modifiers: string[], matched: boolean, rationale: string }
@@ -32,6 +31,55 @@ const CORS_HEADERS: Record<string, string> = {
 
 const ANTHROPIC_MODEL = "claude-haiku-4-5";
 const MAX_QUERY_LENGTH = 300;
+
+/**
+ * Failure alerting: a plain email via Resend (RESEND_API_KEY, verified
+ * sending domain tippos.app) whenever this function can't do its job — the
+ * key is missing/revoked, or Anthropic rejects every request (including a
+ * billing cap being hit, which reads as a 4xx from Anthropic same as a bad
+ * key). This is the operator's only signal that the feature has gone dark,
+ * since a broken advisor otherwise just shows visitors a quiet error card.
+ *
+ * Per-isolate in-memory cooldown, same caveat as the rate limiter above: it
+ * throttles alerts within one isolate's lifetime, not globally, so a
+ * sustained outage across many isolates can still send more than one email —
+ * intentionally erring toward "you get notified" over "you get spammed".
+ */
+const ALERT_TO = "yoni@tippos.app";
+const ALERT_FROM = "tippos alerts <alerts@tippos.app>";
+const ALERT_COOLDOWN_MS = 30 * 60_000;
+let lastAlertAt = 0;
+
+async function sendFailureAlert(reason: string, detail: string): Promise<void> {
+  const now = Date.now();
+  if (now - lastAlertAt < ALERT_COOLDOWN_MS) return;
+  lastAlertAt = now;
+
+  const apiKey = Deno.env.get("RESEND_API_KEY");
+  if (!apiKey) {
+    console.error("[market-intelligence-tip-advisor] Can't send failure alert — RESEND_API_KEY is not configured");
+    return;
+  }
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        from: ALERT_FROM,
+        to: [ALERT_TO],
+        subject: `AI Tip Calculator is down: ${reason}`,
+        text: `The AI Tip Calculator's classifier (market-intelligence-tip-advisor) just failed.\n\nReason: ${reason}\n${detail}\n\nAt least 30 minutes will pass before another alert like this one is sent. Visitors are seeing a generic "something went wrong" message on /tip-calculator/ai in the meantime.`,
+      }),
+    });
+    if (!res.ok) {
+      console.error(`[market-intelligence-tip-advisor] Failure alert email itself failed: ${res.status} ${await res.text().catch(() => "")}`);
+    }
+  } catch (err) {
+    // Never let alerting itself break the request the visitor is waiting on.
+    console.error("[market-intelligence-tip-advisor] Failure alert email threw", err);
+  }
+}
 
 /**
  * Per-IP request ceilings. Both windows must pass. The burst window stops a
@@ -380,6 +428,7 @@ Deno.serve(async (req: Request) => {
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   if (!apiKey) {
     console.error("[market-intelligence-tip-advisor] ANTHROPIC_API_KEY is not configured");
+    await sendFailureAlert("ANTHROPIC_API_KEY is not configured", "The secret is unset or was removed from this project.");
     return new Response(JSON.stringify({ error: "AI advisor is not configured" }), {
       status: 500,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
@@ -408,6 +457,13 @@ Deno.serve(async (req: Request) => {
     if (!response.ok) {
       const errText = await response.text().catch(() => "");
       console.error(`[market-intelligence-tip-advisor] Anthropic API error ${response.status}: ${errText}`);
+      // Covers a bad/revoked key, Anthropic-side rate limiting, and a hit
+      // billing cap alike — all surface as a non-2xx here, and all mean the
+      // feature is effectively down for every visitor until someone looks.
+      await sendFailureAlert(
+        `Anthropic API returned ${response.status}`,
+        errText.slice(0, 500) || "(no response body)",
+      );
       return new Response(JSON.stringify({ error: "AI advisor request failed" }), {
         status: 502,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
@@ -424,6 +480,11 @@ Deno.serve(async (req: Request) => {
     });
   } catch (error) {
     console.error("[market-intelligence-tip-advisor] Unexpected error", error);
+    // Reaches here only for a thrown fetch (network/DNS/timeout to Anthropic)
+    // or a malformed HTTP response — not for the model returning bad JSON,
+    // which parseClassifierOutput already handles without throwing. Both
+    // remaining cases are outage-shaped, so they're worth the same alert.
+    await sendFailureAlert("Unexpected error calling Anthropic", String(error));
     return new Response(JSON.stringify(unmatched("Something went wrong while matching this.")), {
       status: 200,
       headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
