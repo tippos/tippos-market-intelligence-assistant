@@ -17,3 +17,10 @@ verify_jwt = false
 
 [functions.market-intelligence-us-strategy]
 verify_jwt = false
+
+# Called from the brand site's AI Tip Calculator page in the browser, which
+# authenticates with an opaque publishable key rather than a JWT — so JWT
+# verification would reject every call. Abuse is bounded by the per-IP rate
+# limit inside the function, which reads and writes no tables.
+[functions.market-intelligence-tip-advisor]
+verify_jwt = false
