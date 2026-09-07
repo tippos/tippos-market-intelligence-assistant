@@ -146,11 +146,16 @@ function checkRateLimit(ip: string, now: number): { allowed: boolean; retryAfter
 
 /**
  * Generated from BENCHMARK_ENTRIES in src/lib/tipping-benchmarks.ts as of
- * 2026-09-06. Edge functions can't import from src/lib, so this list is a
+ * 2026-09-08. Edge functions can't import from src/lib, so this list is a
  * hand-copied snapshot — slug, label and group only (everything the model
  * needs to classify against). If a benchmark is added, renamed or removed in
  * tipping-benchmarks.ts, this list should be regenerated to match, or the
  * advisor will not be able to match the new/renamed service.
+ *
+ * Some labels below are enriched with brand/colloquial names beyond the raw
+ * benchmark label (from that benchmark's own `searchTerms` in
+ * tipping-benchmarks.ts) — e.g. "DoorDash" for food-delivery — since the
+ * classifier only ever sees this list, not searchTerms itself.
  */
 const KNOWN_SERVICES: { slug: string; label: string; group: string }[] = [
   { slug: "hotel-housekeeping", label: "Hotel housekeeping", group: "Hotels" },
@@ -164,6 +169,8 @@ const KNOWN_SERVICES: { slug: string; label: string; group: string }[] = [
   { slug: "dog-walker", label: "Dog walker", group: "Pets" },
   { slug: "dog-sitter", label: "Dog sitter", group: "Pets" },
   { slug: "movers", label: "Movers", group: "Home & family" },
+  { slug: "camp-counselor", label: "Summer camp counselor", group: "Home & family" },
+  { slug: "trash-collector", label: "Trash & recycling collector (garbage collector, sanitation worker)", group: "Home & family" },
   { slug: "hairdresser", label: "Hairdresser", group: "Hair & nails" },
   { slug: "spa-massage-therapist", label: "Spa & massage therapist", group: "Spa, body & tattoo" },
   { slug: "golf-caddie", label: "Golf caddie", group: "Leisure & sightseeing" },
@@ -180,6 +187,7 @@ const KNOWN_SERVICES: { slug: string; label: string; group: string }[] = [
   { slug: "event-staff", label: "Wedding & event staff", group: "Food & events" },
   { slug: "food-truck", label: "Food cart & food truck", group: "Food & events" },
   { slug: "drive-thru", label: "Drive-thru & fast food counter", group: "Food & events" },
+  { slug: "food-delivery", label: "Food delivery (DoorDash, Uber Eats, Grubhub, Instacart)", group: "Food & events" },
   { slug: "nail-technician", label: "Manicurist & pedicurist", group: "Hair & nails" },
   { slug: "makeup-artist", label: "Makeup artist", group: "Face, lashes & brows" },
   { slug: "hair-colorist", label: "Hair colorist", group: "Hair & nails" },
@@ -189,6 +197,7 @@ const KNOWN_SERVICES: { slug: string; label: string; group: string }[] = [
   { slug: "waxing-specialist", label: "Waxing specialist", group: "Spa, body & tattoo" },
   { slug: "brow-artist", label: "Brow artist", group: "Face, lashes & brows" },
   { slug: "street-artist", label: "Street artist & performer", group: "Leisure & sightseeing" },
+  { slug: "shoe-shiner", label: "Shoe shiner (shoeshine stand)", group: "Leisure & sightseeing" },
 ];
 
 const KNOWN_SLUGS = new Set(KNOWN_SERVICES.map((s) => s.slug));
