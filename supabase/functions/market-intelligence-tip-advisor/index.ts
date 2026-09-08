@@ -197,7 +197,6 @@ const KNOWN_SERVICES: { slug: string; label: string; group: string }[] = [
   { slug: "waxing-specialist", label: "Waxing specialist", group: "Spa, body & tattoo" },
   { slug: "brow-artist", label: "Brow artist", group: "Face, lashes & brows" },
   { slug: "street-artist", label: "Street artist & performer", group: "Leisure & sightseeing" },
-  { slug: "shoe-shiner", label: "Shoe shiner (shoeshine stand)", group: "Leisure & sightseeing" },
 ];
 
 const KNOWN_SLUGS = new Set(KNOWN_SERVICES.map((s) => s.slug));
