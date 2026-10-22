@@ -24,3 +24,9 @@ verify_jwt = false
 # limit inside the function, which reads and writes no tables.
 [functions.market-intelligence-tip-advisor]
 verify_jwt = false
+
+# Public GET of stored sales-tax rates for the brand site's tax-and-tip
+# calculator, read in the browser with no key. The monthly refresh (POST)
+# checks the backend key inside the function.
+[functions.market-intelligence-sales-tax]
+verify_jwt = false
